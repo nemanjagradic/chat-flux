@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+input,
+textarea,
+select {
+  background-color: #1a2640;
+  color: #ffffff;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px #1a2640 inset !important;
+  box-shadow: 0 0 0 1000px #1a2640 inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+  caret-color: #ffffff !important;
+}
+
+.new-conversation input,
+.new-conversation textarea,
+.new-conversation select {
+  background-color: #141e35;
+  color: #ffffff;
+}
+
+.new-conversation input:-webkit-autofill,
+.new-conversation input:-webkit-autofill:hover,
+.new-conversation input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px #141e35 inset !important;
+  box-shadow: 0 0 0 1000px #141e35 inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+  caret-color: #ffffff !important;
+}
+
+@theme {
+  --color-base: #0a0f1e;
+  --color-surface: #0f1729;
+  --color-panel: #141e35;
+  --color-panel2: #1a2640;
+  --color-sidebar: #0c1424;
+  --color-accent: #4f8eff;
+  --color-danger: #ff6584;
+  --color-online: #43e9b0;
+  --color-text: #dde6ff;
+  --color-muted: #5c6f9a;
+
+  --font-display: "Syne", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+}
+
+@layer base {
+}
+
+@layer components {
+}
