@@ -4,9 +4,8 @@ import { MdLogout } from "react-icons/md";
 import { BsTrash } from "react-icons/bs";
 import Header from "./UI/Header";
 import SettingItem from "./UI/SettingItem";
-import { AuthUser } from "../actions/userActions";
 
-export default function Danger({ user }: { user: AuthUser }) {
+export default function Danger() {
   return (
     <div className="flex-1">
       <div className="bg-panel border-accent/20 flex flex-col border-b p-8">

@@ -3,7 +3,6 @@
 import { MdComputer, MdPhoneIphone, MdTablet } from "react-icons/md";
 import Header from "./UI/Header";
 import SessionItem from "./UI/SessionItem";
-import { AuthUser } from "../actions/userActions";
 
 export const sessions = [
   {
@@ -44,7 +43,7 @@ export const sessions = [
   },
 ];
 
-export default function Sessions({ user }: { user: AuthUser }) {
+export default function Sessions() {
   const handleRevoke = (id: string) => {
     console.log("Revoke session:", id);
   };
