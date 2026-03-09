@@ -1,0 +1,199 @@
+"use client";
+
+import { FaRegEnvelope, FaUser, FaAt } from "react-icons/fa";
+import { IoLockClosed } from "react-icons/io5";
+
+import { Dispatch, SetStateAction, useState } from "react";
+import Link from "next/link";
+import Input from "./UI/Input";
+import Button from "./UI/Button";
+import { signupUser, signinUser } from "../actions/userActions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export default function AuthForms() {
+  const router = useRouter();
+
+  const [mode, setMode] = useState("signin");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsPending(true);
+    setError(null);
+
+    const name = formData.get("name")?.toString() ?? "";
+    const username = formData.get("username")?.toString() ?? "";
+    const email = formData.get("email")?.toString() ?? "";
+    const password = formData.get("password")?.toString() ?? "";
+    const passwordConfirm = formData.get("passwordConfirm")?.toString() ?? "";
+
+    let result;
+
+    if (mode === "signup") {
+      result = await signupUser({
+        name,
+        username,
+        email,
+        password,
+        passwordConfirm,
+      });
+    } else {
+      result = await signinUser({ email, password });
+    }
+
+    if (!result) {
+      setIsPending(false);
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+
+    if ("error" in result) {
+      setError(result.error);
+      setIsPending(false);
+      return;
+    }
+
+    toast.success(result.message);
+    setTimeout(() => {
+      router.push("/conversations");
+    }, 2500);
+    setIsPending(false);
+  };
+
+  const handleModeChange = (newMode: string) => {
+    setMode(newMode);
+    setError(null);
+  };
+
+  return (
+    <>
+      <div className="flex rounded-xl bg-[#1d2c4f] p-1">
+        <button
+          className={`flex-1 rounded-lg py-1 ${
+            mode === "signin"
+              ? "bg-accent text-text"
+              : "text-muted bg-[#1d2c4f]"
+          }`}
+          type="button"
+          onClick={() => handleModeChange("signin")}
+        >
+          Sign in
+        </button>
+        <button
+          className={`flex-1 rounded-lg py-1 ${
+            mode === "signup"
+              ? "bg-accent text-text"
+              : "text-muted bg-[#1d2c4f]"
+          }`}
+          type="button"
+          onClick={() => handleModeChange("signup")}
+        >
+          Sign up
+        </button>
+      </div>
+
+      {mode === "signin" ? (
+        <SigninForm
+          setMode={setMode}
+          handleSubmit={handleSubmit}
+          error={error}
+          isPending={isPending}
+        />
+      ) : (
+        <SignupForm
+          handleSubmit={handleSubmit}
+          error={error}
+          isPending={isPending}
+        />
+      )}
+    </>
+  );
+}
+
+const SigninForm = ({
+  setMode,
+  handleSubmit,
+  error,
+  isPending,
+}: {
+  setMode: Dispatch<SetStateAction<string>>;
+  handleSubmit: (formData: FormData) => void;
+  error: string | null;
+  isPending: boolean;
+}) => {
+  return (
+    <form className="my-4 space-y-3" action={handleSubmit}>
+      <Input
+        type="text"
+        name="email"
+        placeholder="Email"
+        icon={FaRegEnvelope}
+      />
+      <Input
+        type="password"
+        name="password"
+        placeholder="Password"
+        icon={IoLockClosed}
+      />
+      <Link
+        className="text-accent block w-full text-right text-sm"
+        href="/forgotPassword"
+      >
+        Forgot Password?
+      </Link>
+      {error && <p className="text-danger font-body text-xs">{error}</p>}
+      <Button type="submit" width="w-full" disabled={isPending}>
+        {isPending ? "Loading..." : "Continue →"}
+      </Button>
+      <p className="text-muted text-center text-sm">
+        Don&apos;t have an account?{" "}
+        <span
+          onClick={() => setMode("signup")}
+          className="text-accent cursor-pointer"
+        >
+          Create one free
+        </span>
+      </p>
+    </form>
+  );
+};
+
+const SignupForm = ({
+  handleSubmit,
+  error,
+  isPending,
+}: {
+  handleSubmit: (formData: FormData) => void;
+  error: string | null;
+  isPending: boolean;
+}) => {
+  return (
+    <form className="my-4 space-y-3" action={handleSubmit}>
+      <Input type="text" name="name" placeholder="Full Name" icon={FaUser} />
+      <Input type="text" name="username" placeholder="Username" icon={FaAt} />
+      <Input
+        type="text"
+        name="email"
+        placeholder="Email"
+        icon={FaRegEnvelope}
+      />
+      <Input
+        type="password"
+        name="password"
+        placeholder="Password"
+        icon={IoLockClosed}
+      />
+      <Input
+        type="password"
+        name="passwordConfirm"
+        placeholder="Confirm password"
+        icon={IoLockClosed}
+      />
+      {error && <p className="text-danger font-body text-xs">{error}</p>}
+      <Button type="submit" width="w-full" disabled={isPending}>
+        {isPending ? "Loading..." : "Create Account →"}
+      </Button>
+    </form>
+  );
+};

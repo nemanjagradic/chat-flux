@@ -7,6 +7,7 @@ type InputProps = {
   id?: string;
   placeholder?: string;
   defaultValue?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 export default function Input({
@@ -16,6 +17,7 @@ export default function Input({
   id,
   placeholder,
   defaultValue,
+  onChange,
 }: InputProps) {
   return (
     <div className="border-panel2 group bg-panel2 focus-within:border-accent flex items-center rounded-xl border px-4 py-2.5 transition-colors">
@@ -26,6 +28,7 @@ export default function Input({
         type={type}
         name={name}
         id={id}
+        onChange={onChange}
         placeholder={placeholder}
         defaultValue={defaultValue}
         className="font-body placeholder:text-muted focus:placeholder:text-text text-text w-full border-none bg-transparent text-sm outline-none"

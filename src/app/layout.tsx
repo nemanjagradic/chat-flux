@@ -1,6 +1,7 @@
 import { Syne, DM_Sans } from "next/font/google";
-import Providers from "../../components/Providers";
 import "./globals.css";
+import Providers from "../../components/Providers";
+import { Toaster } from "sonner";
 
 const syne = Syne({
   variable: "--font-syne",
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${syne.variable} ${dmSans.variable} antialiased`}>
         <Providers>{children}</Providers>
+        <Toaster theme="dark" richColors position="top-right" />
       </body>
     </html>
   );

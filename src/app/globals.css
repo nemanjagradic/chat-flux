@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../src";
 
 input,
 textarea,
@@ -13,23 +14,6 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: #ffffff !important;
   -webkit-box-shadow: 0 0 0 1000px #1a2640 inset !important;
   box-shadow: 0 0 0 1000px #1a2640 inset !important;
-  transition: background-color 9999s ease-in-out 0s;
-  caret-color: #ffffff !important;
-}
-
-.new-conversation input,
-.new-conversation textarea,
-.new-conversation select {
-  background-color: #141e35;
-  color: #ffffff;
-}
-
-.new-conversation input:-webkit-autofill,
-.new-conversation input:-webkit-autofill:hover,
-.new-conversation input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0 1000px #141e35 inset !important;
-  box-shadow: 0 0 0 1000px #141e35 inset !important;
   transition: background-color 9999s ease-in-out 0s;
   caret-color: #ffffff !important;
 }

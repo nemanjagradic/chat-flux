@@ -1,4 +1,4 @@
-import { sessions } from "@/app/(app)/settings/sessions/page";
+import { sessions } from "../Sessions";
 
 import { BsGlobe } from "react-icons/bs";
 import { HiOutlineLocationMarker } from "react-icons/hi";
