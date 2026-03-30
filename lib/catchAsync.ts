@@ -1,4 +1,3 @@
-// lib/catchAsyncAction.ts
 import { AppError } from "./appError";
 import { MongoServerError } from "mongodb";
 import { Error as MongooseError } from "mongoose";

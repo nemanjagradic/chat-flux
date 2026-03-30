@@ -6,7 +6,7 @@ import { getCurrentUser } from "../../../../lib/session";
 
 export default async function Conversations() {
   const user = await getCurrentUser();
-  if (!user) redirect("/account");
+  if (!user) redirect("/auth");
   return (
     <>
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">

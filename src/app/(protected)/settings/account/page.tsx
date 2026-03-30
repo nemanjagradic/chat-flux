@@ -6,7 +6,7 @@ import { getCurrentUser } from "../../../../../lib/session";
 
 export default async function Account() {
   const user = await getCurrentUser();
-  if (!user) redirect("/account");
+  if (!user) redirect("/auth");
 
   return (
     <div className="flex-1">

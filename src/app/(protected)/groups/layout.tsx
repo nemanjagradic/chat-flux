@@ -1,11 +1,21 @@
-import { IoMdSearch } from "react-icons/io";
+import { getCurrentUser } from "../../../../lib/session";
+import { redirect } from "next/navigation";
+import GroupList from "../../../../components/GroupList";
+import { getUserRooms } from "../../../../actions/roomsActions";
 import Header from "../../../../components/UI/Header";
+import { IoMdSearch } from "react-icons/io";
 
-export default function GroupsLayout({
+export default async function GroupsLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth");
+
+  const result = await getUserRooms(user._id);
+  const initialRooms = result && "rooms" in result ? result.rooms : [];
+
   return (
     <div className="bg-base relative flex h-screen w-full">
       <div className="bg-surface border-accent/20 flex w-80 flex-col gap-2 border-r">
@@ -20,6 +30,9 @@ export default function GroupsLayout({
               className="font-body text-text w-full border-none bg-transparent text-sm outline-none focus:ring-0"
             />
           </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <GroupList initialRooms={initialRooms} />
         </div>
       </div>
       {children}

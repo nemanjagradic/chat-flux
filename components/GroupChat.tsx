@@ -1,25 +1,15 @@
 "use client";
 
-import { AuthUser, SearchedUser } from "@/app/types";
-import Image from "next/image";
+import { AuthUser } from "@/app/types";
 import { useEffect, useRef, useState } from "react";
 import { IoSend } from "react-icons/io5";
 import { socket } from "../lib/socket";
 import { useDispatch, useSelector } from "react-redux";
-import { roomsActions } from "../store/roomSlice";
 import { messagesActions } from "../store/messagesSlice";
 import { RootState } from "../store";
 import Message from "./Message";
-import { TMessage } from "@/app/types";
 import MessageInfoModal from "./MessageInfoModal";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
+import { TMessage, TRoom, RoomMember, UserStatus } from "@/app/types";
 
 function formatTime(date: string) {
   return new Date(date).toLocaleTimeString([], {
@@ -30,20 +20,19 @@ function formatTime(date: string) {
 
 const emptyMessages: TMessage[] = [];
 
-export default function Chat({
+export default function GroupChat({
   currentUser,
-  recipientUser,
+  room,
   roomId,
   initialMessages,
 }: {
   currentUser: AuthUser;
-  recipientUser: SearchedUser;
+  room: TRoom;
   roomId: string;
   initialMessages: TMessage[];
 }) {
   const [message, setMessage] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
-
   const dispatch = useDispatch();
   const messages = useSelector(
     (state: RootState) =>
@@ -54,11 +43,10 @@ export default function Chat({
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-    socket.emit("sendMessage", {
+    socket.emit("sendGroupMessage", {
       roomId,
       message,
       senderId: currentUser._id,
-      recipientId: recipientUser._id,
     });
     setMessage("");
   };
@@ -72,32 +60,31 @@ export default function Chat({
   useEffect(() => {
     socket.emit("joinRoom", { roomId });
 
-    socket.on("roomCreated", (room) => {
-      dispatch(roomsActions.addRoom(room));
-    });
-
     socket.on("newMessage", ({ message }) => {
       dispatch(
         messagesActions.addMessage({ message, roomId: message.customRoomId }),
       );
     });
 
-    socket.emit("messagesRead", { roomId });
+    socket.emit("messagesReadGroup", { roomId });
 
     socket.on(
-      "readReceipt",
+      "readReceiptGroup",
       ({
         messages,
       }: {
-        messages: { messageId: string; roomId: string; readAt: Date }[];
+        messages: {
+          messageId: string;
+          roomId: string;
+          readBy: UserStatus[];
+        }[];
       }) => {
-        messages.forEach(({ messageId, roomId, readAt }) => {
+        messages.forEach(({ messageId, roomId, readBy }) => {
           dispatch(
-            messagesActions.updateMessageStatus({
+            messagesActions.updateGroupMessageReadBy({
               roomId,
               messageId,
-              status: "read",
-              readAt,
+              readBy,
             }),
           );
         });
@@ -106,10 +93,9 @@ export default function Chat({
 
     return () => {
       socket.emit("leaveRoom", { roomId });
-      socket.off("roomCreated");
       socket.off("newMessage");
-      socket.off("messagesRead");
-      socket.off("readReceipt");
+      socket.off("messagesReadGroup");
+      socket.off("readReceiptGroup");
     };
   }, [dispatch, roomId]);
 
@@ -117,37 +103,54 @@ export default function Chat({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const getSenderName = (senderId: string) => {
+    if (senderId === currentUser._id) return "You";
+    const member = room.members.find((m: RoomMember) => m._id === senderId);
+    return member?.name ?? "Unknown";
+  };
+
   return (
     <div className="flex flex-1 flex-col">
       {selectedMessage && (
         <MessageInfoModal
           message={selectedMessage}
+          members={room.members}
           onClose={() => setSelectedMessage(null)}
         />
       )}
       <div className="bg-panel2 border-accent/10 flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-4">
-          <div className="bg-surface relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-            {recipientUser.photo ? (
-              <Image
-                src={recipientUser.photo}
-                alt={recipientUser.name}
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <span className="font-display text-muted text-xs font-bold">
-                {getInitials(recipientUser.name)}
-              </span>
-            )}
+          <div className="bg-accent/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+            <span className="text-xl">{room.icon ?? "👥"}</span>
           </div>
           <div className="min-w-0">
             <p className="font-display text-text truncate text-sm font-semibold">
-              {recipientUser.name}
+              {room.name}
             </p>
             <p className="text-muted truncate text-xs">
-              @{recipientUser.username}
+              {room.members.length} members
             </p>
           </div>
+        </div>
+        <div className="flex items-center -space-x-2">
+          {room.members.slice(0, 4).map((member: RoomMember) => (
+            <div
+              key={member._id}
+              className="bg-accent/20 border-panel2 flex h-7 w-7 items-center justify-center rounded-full border-2"
+              title={member.name}
+            >
+              <span className="font-display text-accent text-[9px] font-bold">
+                {member.name[0].toUpperCase()}
+              </span>
+            </div>
+          ))}
+          {room.members.length > 4 && (
+            <div className="bg-panel border-panel2 flex h-7 w-7 items-center justify-center rounded-full border-2">
+              <span className="text-muted text-[9px]">
+                +{room.members.length - 4}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <div className="bg-panel flex flex-1 flex-col gap-2 overflow-y-auto p-5">
@@ -158,16 +161,25 @@ export default function Chat({
         )}
 
         {messages.map((msg: TMessage) => (
-          <Message
-            key={msg._id}
-            text={msg.content}
-            time={formatTime(msg.createdAt)}
-            status={msg.status}
-            onInfoClick={() => setSelectedMessage(msg)}
-            deliveredAt={msg.deliveredAt}
-            readAt={msg.readAt}
-            isOwn={msg.senderId === currentUser._id}
-          />
+          <div key={msg._id} className="flex flex-col">
+            {msg.senderId !== currentUser._id && (
+              <span className="text-accent mb-1 ml-1 text-[10px] font-semibold">
+                {getSenderName(msg.senderId)}
+              </span>
+            )}
+            <Message
+              key={msg._id}
+              text={msg.content}
+              time={formatTime(msg.createdAt)}
+              isOwn={msg.senderId === currentUser._id}
+              onInfoClick={() => setSelectedMessage(msg)}
+              isGroup={true}
+              deliveredTo={msg.deliveredTo ?? []}
+              readBy={msg.readBy ?? []}
+              totalMembers={room.members.length}
+              members={room.members}
+            />
+          </div>
         ))}
         <div ref={bottomRef} />
       </div>
@@ -180,7 +192,7 @@ export default function Chat({
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
+          placeholder={`Message ${room.name}...`}
           className="font-body placeholder:text-muted text-text flex-1 bg-transparent text-sm outline-none"
         />
         <button

@@ -4,6 +4,6 @@ import Sessions from "../../../../../components/Sessions";
 
 export default async function SessionsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/account");
+  if (!user) redirect("/auth");
   return <Sessions />;
 }

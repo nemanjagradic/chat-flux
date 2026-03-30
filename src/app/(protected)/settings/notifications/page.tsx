@@ -4,6 +4,6 @@ import Notifications from "../../../../../components/Notifications";
 
 export default async function NotificationsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/account");
+  if (!user) redirect("/auth");
   return <Notifications />;
 }

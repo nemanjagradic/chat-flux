@@ -6,10 +6,15 @@ const messageSchema = new mongoose.Schema({
     ref: "Room",
     required: true,
   },
+  customRoomId: String,
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+  },
+  recipientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   content: {
     type: String,
@@ -20,8 +25,21 @@ const messageSchema = new mongoose.Schema({
     type: String,
     enum: ["sent", "delivered", "read"],
     default: "sent",
-  }, // for direct messages
-  readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // for groups
+  },
+  deliveredAt: Date,
+  readAt: Date,
+  deliveredTo: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      at: { type: Date, default: Date.now },
+    },
+  ],
+  readBy: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      at: { type: Date, default: Date.now },
+    },
+  ],
   isStarred: { type: Boolean, default: false },
   starredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   createdAt: { type: Date, default: Date.now },

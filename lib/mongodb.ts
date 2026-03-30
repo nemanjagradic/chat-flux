@@ -1,4 +1,3 @@
-// lib/mongodb.ts
 import mongoose from "mongoose";
 import "../models/userModel";
 import "../models/sessionModel";
@@ -12,15 +11,6 @@ declare global {
     | undefined;
 }
 
-const DB = process.env.DATABASE!.replace(
-  "<password>",
-  process.env.DATABASE_PASSWORD!,
-);
-
-if (!DB) {
-  throw new Error("Please define the DB environment variable in .env.local");
-}
-
 if (!global._mongooseCache) {
   global._mongooseCache = { conn: null, promise: null };
 }
@@ -30,8 +20,17 @@ const cached = global._mongooseCache;
 async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
 
+  const DB = process.env.DATABASE!.replace(
+    "<password>",
+    process.env.DATABASE_PASSWORD!,
+  );
+
+  if (!DB) {
+    throw new Error("DATABASE is not defined in environment variables");
+  }
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(DB as string);
+    cached.promise = mongoose.connect(DB);
   }
 
   cached.conn = await cached.promise;

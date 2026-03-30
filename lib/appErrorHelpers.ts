@@ -11,7 +11,6 @@ export const handleDuplicateErrorDB = (err: MongoServerError) => {
   );
 };
 
-// CastError is a Mongoose specific error
 export const handleCastErrorDB = (err: MongooseError.CastError) =>
   new AppError(`Invalid ${err.path}: ${err.value}`, 400);
 
@@ -19,5 +18,3 @@ export const handleValidationError = (err: MongooseError.ValidationError) => {
   const errors = Object.values(err.errors).map((el) => el.message);
   return new AppError(`Invalid input data. ${errors.join(" ")}`, 400);
 };
-// export const handleJWTError = () => new AppError("Invalid token", 401);
-// export const handleTokenExpiredError = () => new AppError("Token expired", 401);

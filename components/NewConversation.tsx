@@ -8,6 +8,7 @@ import { searchUsers } from "../actions/userActions";
 import Header from "./UI/Header";
 import Input from "./UI/Input";
 import CreateGroupInsteadButton from "./CreateGroupInsteadButton";
+import Link from "next/link";
 
 function getInitials(name: string) {
   return name
@@ -65,37 +66,43 @@ export default function NewConversation({ user }: { user: AuthUser }) {
             <p className="text-muted font-display px-6 pb-3 text-xs font-semibold tracking-widest uppercase">
               All Contacts
             </p>
-            {results.map((u) => (
-              <div
-                key={u._id}
-                className="hover:bg-panel2 flex cursor-pointer items-center gap-4 px-6 py-3 transition-colors"
-              >
-                <div className="bg-panel2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                  {u.photo ? (
-                    <Image
-                      src={u.photo}
-                      alt={u.name}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="font-display text-muted text-xs font-bold">
-                      {getInitials(u.name)}
-                    </span>
-                  )}
-                </div>
+            {results.map((u) => {
+              const roomId = [user._id, u._id].sort().join("_");
+              return (
+                <div
+                  key={u._id}
+                  className="hover:bg-panel2 flex cursor-pointer items-center gap-4 px-6 py-3 transition-colors"
+                >
+                  <div className="bg-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                    {u.photo ? (
+                      <Image
+                        src={u.photo}
+                        alt={u.name}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="font-display text-muted text-xs font-bold">
+                        {getInitials(u.name)}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-text truncate text-sm font-semibold">
-                    {u.name}
-                  </p>
-                  <p className="text-muted truncate text-xs">@{u.username}</p>
-                </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-text truncate text-sm font-semibold">
+                      {u.name}
+                    </p>
+                    <p className="text-muted truncate text-xs">@{u.username}</p>
+                  </div>
 
-                <button className="border-accent/20 text-accent font-display hover:bg-accent shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors hover:text-white">
-                  Message
-                </button>
-              </div>
-            ))}
+                  <Link
+                    href={`/conversations/${roomId}`}
+                    className="border-accent/20 text-accent font-display hover:bg-accent shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors hover:text-white"
+                  >
+                    Message
+                  </Link>
+                </div>
+              );
+            })}
           </>
         )}
       </div>

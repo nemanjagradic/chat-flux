@@ -154,3 +154,15 @@ export const searchUsers = catchAsyncAction(
     };
   },
 );
+
+export const getUserById = catchAsyncAction(async (id: string) => {
+  await connectDB();
+  const user = await User.findById(id).select("name username photo");
+  if (!user) throw new AppError("User not found", 404);
+  return {
+    _id: user._id.toString(),
+    name: user.name,
+    username: user.username,
+    photo: user.photo,
+  };
+});

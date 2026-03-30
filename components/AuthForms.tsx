@@ -10,6 +10,7 @@ import Button from "./UI/Button";
 import { signupUser, signinUser } from "../actions/userActions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { socket } from "../lib/socket";
 
 export default function AuthForms() {
   const router = useRouter();
@@ -53,6 +54,11 @@ export default function AuthForms() {
       setIsPending(false);
       return;
     }
+
+    const res = await fetch("/api/session");
+    const { token } = await res.json();
+    socket.auth = { sessionToken: token };
+    socket.connect();
 
     toast.success(result.message);
     setTimeout(() => {

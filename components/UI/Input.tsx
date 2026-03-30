@@ -6,6 +6,7 @@ type InputProps = {
   name?: string;
   id?: string;
   placeholder?: string;
+  value?: string;
   defaultValue?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
@@ -16,6 +17,7 @@ export default function Input({
   name,
   id,
   placeholder,
+  value,
   defaultValue,
   onChange,
 }: InputProps) {
@@ -30,6 +32,7 @@ export default function Input({
         id={id}
         onChange={onChange}
         placeholder={placeholder}
+        value={value}
         defaultValue={defaultValue}
         className="font-body placeholder:text-muted focus:placeholder:text-text text-text w-full border-none bg-transparent text-sm outline-none"
       />
