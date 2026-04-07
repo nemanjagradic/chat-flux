@@ -12,6 +12,7 @@ import { RootState } from "../store";
 import Message from "./Message";
 import { TMessage } from "@/app/types";
 import MessageInfoModal from "./MessageInfoModal";
+import { toast } from "sonner";
 
 function getInitials(name: string) {
   return name
@@ -28,6 +29,16 @@ function formatTime(date: string) {
   });
 }
 
+function formatLastSeen(date: string) {
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return new Date(date).toLocaleDateString("en-GB");
+}
+
 const emptyMessages: TMessage[] = [];
 
 export default function Chat({
@@ -41,6 +52,14 @@ export default function Chat({
   roomId: string;
   initialMessages: TMessage[];
 }) {
+  const onlineUsers = useSelector(
+    (state: RootState) => state.onlineUsers.onlineUsers,
+  );
+  const lastSeenRedux = useSelector(
+    (state: RootState) => state.onlineUsers.lastSeen[recipientUser._id],
+  );
+  const lastSeen = lastSeenRedux ?? recipientUser.lastSeen;
+  const isOnline = onlineUsers.includes(recipientUser._id);
   const [message, setMessage] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
 
@@ -104,12 +123,17 @@ export default function Chat({
       },
     );
 
+    socket.on("messageError", ({ error }) => {
+      toast.error(error);
+    });
+
     return () => {
       socket.emit("leaveRoom", { roomId });
       socket.off("roomCreated");
       socket.off("newMessage");
       socket.off("messagesRead");
       socket.off("readReceipt");
+      socket.off("messageError");
     };
   }, [dispatch, roomId]);
 
@@ -132,7 +156,9 @@ export default function Chat({
               <Image
                 src={recipientUser.photo}
                 alt={recipientUser.name}
-                className="h-10 w-10 rounded-full object-cover"
+                fill
+                sizes="40px"
+                className="rounded-full object-cover"
               />
             ) : (
               <span className="font-display text-muted text-xs font-bold">
@@ -144,9 +170,17 @@ export default function Chat({
             <p className="font-display text-text truncate text-sm font-semibold">
               {recipientUser.name}
             </p>
-            <p className="text-muted truncate text-xs">
-              @{recipientUser.username}
-            </p>
+            {isOnline ? (
+              <p className="text-online text-xs">● Online</p>
+            ) : lastSeen ? (
+              <p className="text-muted text-xs">
+                Last seen {formatLastSeen(lastSeen)}
+              </p>
+            ) : (
+              <p className="text-muted truncate text-xs">
+                @{recipientUser.username}
+              </p>
+            )}
           </div>
         </div>
       </div>

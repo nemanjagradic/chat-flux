@@ -26,6 +26,7 @@ export type SearchedUser = {
   name: string;
   username: string;
   photo?: string;
+  lastSeen?: string | null;
 };
 
 export type RoomMember = {

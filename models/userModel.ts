@@ -41,12 +41,14 @@ const userSchema = new mongoose.Schema<UserType>({
   name: {
     type: String,
     required: [true, "User must have a name."],
+    minlength: [2, "Name must be at least 2 characters"],
+    maxlength: [50, "Name can have maximum of 50 characters."],
     trim: true,
   },
   username: {
     type: String,
     required: [true, "User must have a username."],
-    minlength: [6, "Username must be at least 6 characters"],
+    minlength: [6, "Username must be at least 6 characters."],
     maxlength: [16, "Username can have maximum of 16 characters."],
     unique: true,
     trim: true,

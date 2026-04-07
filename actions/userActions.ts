@@ -1,13 +1,17 @@
 "use server";
 
 import { AppError } from "../lib/appError";
-import { catchAsyncAction } from "../lib/catchAsync";
+import { catchAsyncAction, catchAsyncFormAction } from "../lib/catchAsync";
 import { Email } from "../lib/email";
 import connectDB from "../lib/mongodb";
-import { createSession } from "../lib/session";
-import User from "../models/userModel";
+import { createSession, getCurrentUser } from "../lib/session";
+import User, { UserType } from "../models/userModel";
 import crypto from "crypto";
 import { AuthUser, SearchedUser, SigninData, SignupData } from "@/app/types";
+import { revalidatePath } from "next/cache";
+import { uploadImage } from "../lib/cloudinary";
+import Session from "../models/sessionModel";
+import { cookies } from "next/headers";
 
 export const signupUser = catchAsyncAction<
   SignupData,
@@ -157,12 +161,89 @@ export const searchUsers = catchAsyncAction(
 
 export const getUserById = catchAsyncAction(async (id: string) => {
   await connectDB();
-  const user = await User.findById(id).select("name username photo");
+  const user = await User.findById(id).select("name username photo lastSeen");
   if (!user) throw new AppError("User not found", 404);
+
   return {
     _id: user._id.toString(),
     name: user.name,
     username: user.username,
     photo: user.photo,
+    lastSeen: user.lastSeen?.toISOString() ?? null,
   };
 });
+
+export const updateProfile = catchAsyncFormAction(
+  async (_, formData: FormData) => {
+    const session = await getCurrentUser();
+    if (!session) throw new AppError("Unauthorized", 401);
+
+    const name = formData.get("name")?.toString();
+    const username = formData.get("username")?.toString();
+    const bio = formData.get("bio")?.toString();
+    const photo = formData.get("photo") as File | null;
+
+    await connectDB();
+
+    const updates: Record<string, string> = {};
+    if (name) updates.name = name;
+    if (username) updates.username = username;
+    if (bio) updates.bio = bio;
+    if (photo && photo.size > 0) await uploadImage(updates, photo);
+
+    await User.findByIdAndUpdate(session._id, updates, { runValidators: true });
+    revalidatePath("/");
+
+    return { message: "Profile updated successfully" };
+  },
+);
+
+export const updateAccount = catchAsyncFormAction(
+  async (_, formData: FormData) => {
+    const sessionToken = (await cookies()).get("session")?.value;
+    if (!sessionToken) throw new AppError("Unauthorized", 401);
+
+    await connectDB();
+
+    const session = await Session.findOne({
+      token: sessionToken,
+      expiresAt: { $gt: new Date() },
+    }).populate<{
+      userId: UserType & { password: string; passwordConfirm: string };
+    }>("userId", "+password");
+    if (!session?.userId) throw new AppError("Unauthorized", 401);
+
+    const user = session.userId;
+
+    const email = formData.get("email")?.toString();
+    const currentPassword = formData.get("currentPassword")?.toString();
+    const newPassword = formData.get("newPassword")?.toString();
+    const confirmNewPassword = formData.get("confirmNewPassword")?.toString();
+
+    if (email && email !== user.email) user.email = email;
+
+    const wantsToChangePassword =
+      currentPassword || newPassword || confirmNewPassword;
+
+    if (wantsToChangePassword) {
+      if (!currentPassword)
+        throw new AppError("Please provide your current password.", 400);
+      if (!newPassword)
+        throw new AppError("Please provide a new password.", 400);
+      if (!confirmNewPassword)
+        throw new AppError("Please confirm your new password.", 400);
+      if (newPassword !== confirmNewPassword)
+        throw new AppError("New password and confirmation do not match.", 400);
+      if (!(await user.correctPassword(currentPassword, user.password)))
+        throw new AppError("Your current password is incorrect.", 400);
+
+      user.password = newPassword;
+      user.passwordConfirm = confirmNewPassword;
+    }
+
+    await user.save({ validateModifiedOnly: true });
+    revalidatePath("/");
+
+    return { message: "Account updated successfully" };
+  },
+);

@@ -16,5 +16,5 @@ export const handleCastErrorDB = (err: MongooseError.CastError) =>
 
 export const handleValidationError = (err: MongooseError.ValidationError) => {
   const errors = Object.values(err.errors).map((el) => el.message);
-  return new AppError(`Invalid input data. ${errors.join(" ")}`, 400);
+  return new AppError(`${errors.join(" ")}`, 400);
 };

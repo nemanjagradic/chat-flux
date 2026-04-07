@@ -6,6 +6,7 @@ import { RootState } from "../store";
 import { roomsActions } from "../store/roomSlice";
 import { useEffect } from "react";
 import { TRoom } from "@/app/types";
+import Image from "next/image";
 
 function getInitials(name: string) {
   return name
@@ -34,6 +35,10 @@ export default function RoomList({
   initialRooms: TRoom[];
 }) {
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
+  const onlineUsers = useSelector(
+    (state: RootState) => state.onlineUsers.onlineUsers,
+  );
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -77,14 +82,28 @@ export default function RoomList({
               <div className="bg-accent absolute top-2 bottom-2 left-0 w-0.5 rounded-r" />
             )}
 
-            <div className="bg-accent/20 flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
+            <div className="bg-accent/20 relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
               {displayIcon ? (
                 <span className="text-base">{displayIcon}</span>
+              ) : otherMember?.photo ? (
+                <Image
+                  src={otherMember.photo}
+                  alt={otherMember.name}
+                  fill
+                  sizes="40px"
+                  className="rounded-full object-cover"
+                />
               ) : (
                 <span className="font-display text-accent text-xs font-bold">
                   {getInitials(displayName ?? "?")}
                 </span>
               )}
+
+              {room.type === "direct" &&
+                otherMember &&
+                onlineUsers.includes(otherMember._id) && (
+                  <span className="bg-online border-surface absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2" />
+                )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-display text-text truncate text-xs font-semibold">

@@ -196,7 +196,15 @@ const SignupForm = ({
         placeholder="Confirm password"
         icon={IoLockClosed}
       />
-      {error && <p className="text-danger font-body text-xs">{error}</p>}
+      {error && (
+        <div className="flex flex-col gap-1">
+          {error.split(".").map((err, i) => (
+            <p key={i} className="text-danger text-sm">
+              {err}
+            </p>
+          ))}
+        </div>
+      )}
       <Button type="submit" width="w-full" disabled={isPending}>
         {isPending ? "Loading..." : "Create Account →"}
       </Button>

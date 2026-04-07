@@ -11,6 +11,7 @@ import { messagesActions } from "../store/messagesSlice";
 import { AuthUser } from "@/app/types";
 import { roomsActions } from "../store/roomSlice";
 import { UserStatus } from "@/app/types";
+import { onlineUsersActions } from "../store/onlineUsersSlice";
 
 export default function AppLayout({
   children,
@@ -26,6 +27,19 @@ export default function AppLayout({
   const dispatch = useDispatch();
 
   useEffect(() => {
+    socket.on("connect", () => {
+      socket.emit("getOnlineUsers");
+    });
+    socket.emit("getOnlineUsers");
+    socket.on("onlineUsers", ({ userIds }) => {
+      dispatch(onlineUsersActions.setOnlineUsers(userIds));
+    });
+    socket.on("userOnline", ({ userId }) => {
+      dispatch(onlineUsersActions.addOnlineUser(userId));
+    });
+    socket.on("userOffline", ({ userId, lastSeen }) => {
+      dispatch(onlineUsersActions.removeOnlineUser({ userId, lastSeen }));
+    });
     socket.on(
       "messagesDelivered",
       ({
@@ -80,9 +94,13 @@ export default function AppLayout({
     });
 
     return () => {
+      socket.off("connect");
       socket.off("messagesDelivered");
       socket.off("groupMessagesDelivered");
       socket.off("roomUpdated");
+      socket.off("userOnline");
+      socket.off("userOffline");
+      socket.off("onlineUsers");
     };
   }, [dispatch]);
 

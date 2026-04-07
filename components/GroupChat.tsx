@@ -10,6 +10,7 @@ import { RootState } from "../store";
 import Message from "./Message";
 import MessageInfoModal from "./MessageInfoModal";
 import { TMessage, TRoom, RoomMember, UserStatus } from "@/app/types";
+import { toast } from "sonner";
 
 function formatTime(date: string) {
   return new Date(date).toLocaleTimeString([], {
@@ -31,6 +32,22 @@ export default function GroupChat({
   roomId: string;
   initialMessages: TMessage[];
 }) {
+  const onlineUsers = useSelector(
+    (state: RootState) => state.onlineUsers.onlineUsers,
+  );
+  const isMembersOnline = () => {
+    const onlineMembers = room.members.filter(
+      (m) => m._id !== currentUser._id && onlineUsers.includes(m._id),
+    );
+    if (room.members.length === onlineUsers.length) {
+      return "All members online";
+    }
+    if (onlineMembers.length > 0) {
+      return `${onlineMembers.length} online now`;
+    }
+    return `${room.members.length} members`;
+  };
+
   const [message, setMessage] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
   const dispatch = useDispatch();
@@ -91,11 +108,16 @@ export default function GroupChat({
       },
     );
 
+    socket.on("messageError", ({ error }) => {
+      toast.error(error);
+    });
+
     return () => {
       socket.emit("leaveRoom", { roomId });
       socket.off("newMessage");
       socket.off("messagesReadGroup");
       socket.off("readReceiptGroup");
+      socket.off("messageError");
     };
   }, [dispatch, roomId]);
 
@@ -127,9 +149,7 @@ export default function GroupChat({
             <p className="font-display text-text truncate text-sm font-semibold">
               {room.name}
             </p>
-            <p className="text-muted truncate text-xs">
-              {room.members.length} members
-            </p>
+            <p className="text-muted truncate text-xs">{isMembersOnline()}</p>
           </div>
         </div>
         <div className="flex items-center -space-x-2">

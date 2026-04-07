@@ -13,6 +13,7 @@
     "@react-email/render": "^2.0.4",
     "@reduxjs/toolkit": "^2.11.2",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.3",
     "next": "16.1.6",
