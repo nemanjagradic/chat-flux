@@ -5,6 +5,7 @@ import connectDB from "./mongodb";
 import mongoose from "mongoose";
 import { PopulatedGroupMessage } from "@/app/types";
 import {
+  emitNotificationToMembers,
   filterFullyProcessed,
   syncGroupStatusToSenders,
   updateRoomLastMessage,
@@ -82,8 +83,15 @@ export function handleSendMessage(
         newMessage,
         message,
         senderId,
+        { recipientId },
       );
+
       io.to(roomId).emit("newMessage", { message: newMessage.toObject() });
+
+      await emitNotificationToMembers(io, roomId, [recipientId], {
+        ...newMessage.toObject(),
+        senderName: socket.data.user.name,
+      });
     },
     socket,
     "messageError",
@@ -224,8 +232,21 @@ export function handleSendGroupMessage(
         newMessage,
         message,
         senderId,
+        { otherMembers },
       );
+
       io.to(roomId).emit("newMessage", { message: newMessage.toObject() });
+
+      await emitNotificationToMembers(
+        io,
+        roomId,
+        otherMembers.map((m) => m.toString()),
+        {
+          ...newMessage.toObject(),
+          senderName: socket.data.user.name,
+          roomName: room.name,
+        },
+      );
     },
     socket,
     "messageError",
@@ -251,6 +272,29 @@ export function handleMessagesReadGroup(io: Server, userId: string) {
       },
       { $push: { readBy: { userId, at: new Date() } } },
     );
+
+    const senderIds = [
+      ...new Set(unreadGroupMessages.map((m) => m.senderId.toString())),
+    ];
+    const allSockets = await io.fetchSockets();
+
+    for (const senderId of senderIds) {
+      const senderSocket = allSockets.find(
+        (s) => s.data.user._id.toString() === senderId,
+      );
+      if (senderSocket) {
+        const messages = unreadGroupMessages
+          .filter((m) => m.senderId.toString() === senderId)
+          .map((m) => ({
+            messageId: m._id.toString(),
+            roomId: m.customRoomId,
+            userId,
+            at: new Date(),
+          }));
+
+        senderSocket.emit("messageReadByMember", { messages });
+      }
+    }
 
     const updatedMessages = await Message.find({
       _id: { $in: unreadGroupMessages.map((m) => m._id) },

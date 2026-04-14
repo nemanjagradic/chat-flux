@@ -6,6 +6,11 @@ export type AuthUser = {
   email: string;
   username: string;
   photo?: string;
+  messageSounds?: boolean;
+  notificationSound?: boolean;
+  desktopNotifications?: boolean;
+  groupAlerts?: boolean;
+  doNotDisturb?: boolean;
 };
 
 export type SigninData = {

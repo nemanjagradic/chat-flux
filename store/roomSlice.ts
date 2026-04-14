@@ -34,6 +34,16 @@ const roomsSlice = createSlice({
       if (room) {
         room.lastMessage = action.payload.lastMessage;
         room.lastMessageAt = action.payload.lastMessageAt;
+
+        state.rooms = [...state.rooms].sort((a, b) => {
+          const dateA = a.lastMessageAt
+            ? new Date(a.lastMessageAt).getTime()
+            : 0;
+          const dateB = b.lastMessageAt
+            ? new Date(b.lastMessageAt).getTime()
+            : 0;
+          return dateB - dateA;
+        });
       }
     },
   },

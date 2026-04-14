@@ -1,9 +1,12 @@
+"use server";
+
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import Session from "../models/sessionModel";
 import connectDB from "./mongodb";
 import { AuthUser } from "@/app/types";
-import { UserType } from "../models/userModel";
+import User, { UserType } from "../models/userModel";
+import Room from "../models/roomModel";
 
 export async function createSession(userId: string) {
   await connectDB();
@@ -46,6 +49,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     email: user.email,
     username: user.username,
     photo: user.photo,
+    messageSounds: user.messageSounds,
+    notificationSound: user.notificationSound,
+    desktopNotifications: user.desktopNotifications,
+    groupAlerts: user.groupAlerts,
+    doNotDisturb: user.doNotDisturb,
   };
 }
 
@@ -53,5 +61,26 @@ export async function logout() {
   await connectDB();
   const sessionToken = (await cookies()).get("session")?.value;
   if (sessionToken) await Session.deleteOne({ token: sessionToken });
+  (await cookies()).delete("session");
+}
+
+export async function deleteAccount() {
+  await connectDB();
+  const sessionToken = (await cookies()).get("session")?.value;
+  if (!sessionToken) return;
+
+  const session = await Session.findOne({ token: sessionToken });
+  if (!session) return;
+
+  const userId = session.userId;
+
+  await Room.updateMany(
+    { type: "group", members: userId },
+    { $pull: { members: userId } },
+  );
+
+  await Session.deleteMany({ userId });
+  await User.findByIdAndDelete(userId);
+
   (await cookies()).delete("session");
 }

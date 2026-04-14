@@ -55,11 +55,11 @@ export default function MessageInfoModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="bg-surface/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-panel w-full max-w-sm rounded-2xl p-4 shadow-xl"
+        className="bg-panel border-accent/20 w-full max-w-sm rounded-2xl border p-5 shadow-xl"
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-text text-sm font-semibold">Message info</h2>

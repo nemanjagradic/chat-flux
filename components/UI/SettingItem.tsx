@@ -7,6 +7,7 @@ type SettingItemProps = {
   iconBg: string;
   borderBottom?: string;
   enabled?: boolean;
+  disabled?: boolean;
   onToggle?: () => void;
   actionLabel?: string;
   actionStyle?: string;
@@ -20,6 +21,7 @@ export default function SettingItem({
   iconBg,
   borderBottom,
   enabled,
+  disabled,
   onToggle,
   actionLabel,
   actionStyle = "text-accent",
@@ -44,8 +46,8 @@ export default function SettingItem({
           type="button"
           onClick={onToggle}
           className={`flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${
-            enabled ? "bg-accent" : "bg-panel2"
-          }`}
+            enabled ? "bg-accent" : disabled ? "bg-muted" : "bg-panel2"
+          } `}
         >
           <span
             className={`h-4 w-4 rounded-full bg-white shadow-md transition-transform duration-200 ${

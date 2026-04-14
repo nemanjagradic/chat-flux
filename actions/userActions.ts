@@ -247,3 +247,31 @@ export const updateAccount = catchAsyncFormAction(
     return { message: "Account updated successfully" };
   },
 );
+
+export const updateNotificationSettings = catchAsyncFormAction(
+  async (_, formData: FormData) => {
+    const session = await getCurrentUser();
+    if (!session) throw new AppError("Unauthorized", 401);
+
+    await connectDB();
+
+    const updates: Record<string, boolean> = {};
+
+    if (formData.has("messageSounds"))
+      updates.messageSounds = formData.get("messageSounds") === "true";
+    if (formData.has("notificationSound"))
+      updates.notificationSound = formData.get("notificationSound") === "true";
+    if (formData.has("desktopNotifications"))
+      updates.desktopNotifications =
+        formData.get("desktopNotifications") === "true";
+    if (formData.has("groupAlerts"))
+      updates.groupAlerts = formData.get("groupAlerts") === "true";
+    if (formData.has("doNotDisturb"))
+      updates.doNotDisturb = formData.get("doNotDisturb") === "true";
+
+    await User.findByIdAndUpdate(session._id, updates);
+    revalidatePath("/");
+
+    return { message: "Settings saved" };
+  },
+);

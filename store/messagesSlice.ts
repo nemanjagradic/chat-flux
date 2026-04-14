@@ -88,6 +88,33 @@ const messagesSlice = createSlice({
         if (message) message.readBy = action.payload.readBy;
       }
     },
+    addReadByMember(
+      state,
+      action: PayloadAction<{
+        roomId: string;
+        messageId: string;
+        userId: string;
+        at: string;
+      }>,
+    ) {
+      const messages = state.messagesByRoom[action.payload.roomId];
+      if (messages) {
+        const message = messages.find(
+          (m) => m._id === action.payload.messageId,
+        );
+        if (message && message.readBy) {
+          const alreadyRead = message.readBy.some(
+            (r) => r.userId === action.payload.userId,
+          );
+          if (!alreadyRead) {
+            message.readBy.push({
+              userId: action.payload.userId,
+              at: action.payload.at,
+            });
+          }
+        }
+      }
+    },
   },
 });
 
