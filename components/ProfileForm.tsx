@@ -29,7 +29,7 @@ export default function ProfileForm({ user }: { user: AuthUser }) {
     const hasPhoto = photo && photo.size > 0;
 
     if (!name && !username && !bio && !hasPhoto) {
-      toast.info("Nothing to update!");
+      toast.info("No changes to save");
       return;
     }
 

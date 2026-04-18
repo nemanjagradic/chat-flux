@@ -15,14 +15,10 @@ const sessionSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  device: String,
-  browser: String,
+  userAgent: String,
+  ip: String,
   location: String,
-  deviceType: {
-    type: String,
-    enum: ["computer", "phone", "tablet"],
-    default: "computer",
-  },
+  lastUsedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
 });
 

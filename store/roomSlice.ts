@@ -3,10 +3,14 @@ import { TRoom, LastMessage } from "@/app/types";
 
 type RoomsState = {
   rooms: TRoom[];
+  type: string;
+  searchName: string;
 };
 
 const initialState: RoomsState = {
   rooms: [],
+  type: "All",
+  searchName: "",
 };
 
 const roomsSlice = createSlice({
@@ -21,6 +25,9 @@ const roomsSlice = createSlice({
         (r) => r.roomId === action.payload.roomId,
       );
       if (!exists) state.rooms.push(action.payload);
+    },
+    setType(state, action: PayloadAction<{ type: string }>) {
+      state.type = action.payload.type;
     },
     updateRoomLastMessage(
       state,
@@ -45,6 +52,9 @@ const roomsSlice = createSlice({
           return dateB - dateA;
         });
       }
+    },
+    setSearchName: (state, action) => {
+      state.searchName = action.payload;
     },
   },
 });

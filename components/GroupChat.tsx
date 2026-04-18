@@ -1,7 +1,7 @@
 "use client";
 
 import { AuthUser } from "@/app/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { IoSend } from "react-icons/io5";
 import { socket } from "../lib/socket";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,15 +11,9 @@ import Message from "./Message";
 import MessageInfoModal from "./MessageInfoModal";
 import { TMessage, TRoom, RoomMember, UserStatus } from "@/app/types";
 import { toast } from "sonner";
-
-function formatTime(date: string) {
-  return new Date(date).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-const emptyMessages: TMessage[] = [];
+import { toggleMessageStar } from "../actions/messagesActions";
+import { useChatScrollAndMessages } from "../hooks/useChatScrollAndMessages";
+import { formatMessageTime } from "../lib/formatters";
 
 export default function GroupChat({
   currentUser,
@@ -51,11 +45,36 @@ export default function GroupChat({
   const [message, setMessage] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
   const dispatch = useDispatch();
-  const messages = useSelector(
-    (state: RootState) =>
-      state.messages.messagesByRoom[roomId] ?? emptyMessages,
-  );
-  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const { messages, bottomRef } = useChatScrollAndMessages({
+    roomId,
+    initialMessages,
+  });
+
+  const handleStarredMessage = async (
+    messageId: string,
+    isStarred: boolean,
+  ) => {
+    const result = await toggleMessageStar({ messageId, isStarred });
+    if (!result || "error" in result) {
+      toast.error("error" in result ? result.error : "Something went wrong");
+      return;
+    }
+    dispatch(
+      messagesActions.updateMessageStar({
+        roomId,
+        messageId,
+        isStarred: !isStarred,
+      }),
+    );
+    toast(result.message, {
+      icon: "⭐",
+      style: {
+        background: "#141e35",
+        color: "#ffd200",
+      },
+    });
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,12 +86,6 @@ export default function GroupChat({
     });
     setMessage("");
   };
-
-  useEffect(() => {
-    dispatch(
-      messagesActions.setMessages({ roomId, messages: initialMessages }),
-    );
-  }, [dispatch, initialMessages, roomId]);
 
   useEffect(() => {
     socket.emit("joinRoom", { roomId });
@@ -120,10 +133,6 @@ export default function GroupChat({
       socket.off("messageError");
     };
   }, [dispatch, roomId]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const getSenderName = (senderId: string) => {
     if (senderId === currentUser._id) return "You";
@@ -189,8 +198,9 @@ export default function GroupChat({
             )}
             <Message
               key={msg._id}
+              id={msg._id}
               text={msg.content}
-              time={formatTime(msg.createdAt)}
+              time={formatMessageTime(msg.createdAt)}
               isOwn={msg.senderId === currentUser._id}
               onInfoClick={() => setSelectedMessage(msg)}
               isGroup={true}
@@ -198,6 +208,8 @@ export default function GroupChat({
               readBy={msg.readBy ?? []}
               totalMembers={room.members.length}
               members={room.members}
+              isStarred={msg.isStarred}
+              onStarClick={() => handleStarredMessage(msg._id, msg.isStarred)}
             />
           </div>
         ))}

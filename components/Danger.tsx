@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { deleteAccount, logout } from "../lib/session";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
+import { toast } from "sonner";
 
 export default function Danger() {
   const router = useRouter();
@@ -15,12 +16,30 @@ export default function Danger() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
+    const result = await logout();
+    if (!result) {
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.message);
     router.push("/auth");
   };
 
   const handleDelete = async () => {
-    await deleteAccount();
+    const result = await deleteAccount();
+    if (!result) {
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.message);
     router.push("/auth");
   };
   return (

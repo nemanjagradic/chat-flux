@@ -4,14 +4,18 @@ import { AppError } from "../lib/appError";
 import { catchAsyncAction, catchAsyncFormAction } from "../lib/catchAsync";
 import { Email } from "../lib/email";
 import connectDB from "../lib/mongodb";
-import { createSession, getCurrentUser } from "../lib/session";
+import {
+  createSession,
+  getCurrentUser,
+  getLocationFromIp,
+} from "../lib/session";
 import User, { UserType } from "../models/userModel";
 import crypto from "crypto";
 import { AuthUser, SearchedUser, SigninData, SignupData } from "@/app/types";
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "../lib/cloudinary";
 import Session from "../models/sessionModel";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 export const signupUser = catchAsyncAction<
   SignupData,
@@ -28,7 +32,13 @@ export const signupUser = catchAsyncAction<
     passwordConfirm: passwordConfirm,
   });
 
-  await createSession(newUser._id.toString());
+  const headersList = await headers();
+  const userAgent = headersList.get("user-agent") ?? undefined;
+  const ip = headersList.get("x-forwarded-for") ?? undefined;
+
+  const location = await getLocationFromIp(ip);
+
+  await createSession(newUser._id.toString(), userAgent, ip, location);
 
   return {
     message: "User created successfully",
@@ -57,7 +67,13 @@ export const signinUser = catchAsyncAction<
   if (!user || !(await user.correctPassword(password, user.password)))
     throw new AppError("Incorrect email or password.", 401);
 
-  await createSession(user._id.toString());
+  const headersList = await headers();
+  const userAgent = headersList.get("user-agent") ?? undefined;
+  const ip = headersList.get("x-forwarded-for") ?? undefined;
+
+  const location = await getLocationFromIp(ip);
+
+  await createSession(user._id.toString(), userAgent, ip, location);
 
   return {
     message: "User signin successfully",

@@ -11,16 +11,9 @@ import { AuthUser, SearchedUser } from "@/app/types";
 import { searchUsers } from "../actions/userActions";
 import { socket } from "../lib/socket";
 import { roomsActions } from "../store/roomSlice";
+import { getInitials } from "../lib/formatters";
 
 const GROUP_ICONS = ["🎨", "🚀", "⚡", "🔥", "💡", "🎮", "🎵", "💼"];
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
 
 export default function CreateGroupModal({ user }: { user: AuthUser }) {
   const [groupName, setGroupName] = useState("");

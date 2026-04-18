@@ -1,55 +1,45 @@
 "use client";
 
-import { MdComputer, MdPhoneIphone, MdTablet } from "react-icons/md";
 import Header from "./UI/Header";
 import SessionItem from "./UI/SessionItem";
+import { TSessionItem } from "@/app/types";
+import { revokeAllSessions, revokeSession } from "../lib/session";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export const sessions = [
-  {
-    id: "sess_1",
-    device: "MacBook Pro",
-    browser: "Chrome 121",
-    location: "Belgrade, RS",
-    lastSeen: "Active now",
-    icon: MdComputer,
-    current: true,
-  },
-  {
-    id: "sess_2",
-    device: "iPhone 15 Pro",
-    browser: "Safari 17",
-    location: "Belgrade, RS",
-    lastSeen: "2 hours ago",
-    icon: MdPhoneIphone,
-    current: false,
-  },
-  {
-    id: "sess_3",
-    device: "Windows PC",
-    browser: "Firefox 122",
-    location: "Novi Sad, RS",
-    lastSeen: "3 days ago",
-    icon: MdComputer,
-    current: false,
-  },
-  {
-    id: "sess_4",
-    device: "iPad Air",
-    browser: "Safari 17",
-    location: "Belgrade, RS",
-    lastSeen: "Last week",
-    icon: MdTablet,
-    current: false,
-  },
-];
+export default function Sessions({ sessions }: { sessions: TSessionItem[] }) {
+  const router = useRouter();
 
-export default function Sessions() {
-  const handleRevoke = (id: string) => {
-    console.log("Revoke session:", id);
+  const handleRevoke = async (id: string) => {
+    const result = await revokeSession(id);
+    if (!result) {
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.message);
+    router.refresh();
   };
 
-  const handleRevokeAll = () => {
-    console.log("Revoke all sessions");
+  const handleRevokeAll = async () => {
+    if (sessions.filter((s) => !s.isCurrent).length === 0) {
+      toast.info("There are no other sessions to revoke.");
+      return;
+    }
+    const result = await revokeAllSessions(null);
+    if (!result) {
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.message);
+    router.refresh();
   };
 
   return (
@@ -62,7 +52,7 @@ export default function Sessions() {
         <div className="border-accent/10 mb-4 overflow-hidden rounded-2xl border">
           {sessions.map((session, index) => (
             <div
-              key={session.id}
+              key={session._id}
               className={`bg-panel px-4 ${
                 index !== sessions.length - 1 ? "border-accent/10 border-b" : ""
               }`}

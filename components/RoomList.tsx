@@ -7,25 +7,7 @@ import { roomsActions } from "../store/roomSlice";
 import { useEffect } from "react";
 import { TRoom } from "@/app/types";
 import Image from "next/image";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
-
-function timeAgo(date?: string) {
-  if (!date) return "";
-  const diff = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
-}
+import { getInitials, lastMessageAgo } from "../lib/formatters";
 
 export default function RoomList({
   currentUserId,
@@ -34,6 +16,8 @@ export default function RoomList({
   currentUserId: string;
   initialRooms: TRoom[];
 }) {
+  const searchName = useSelector((state: RootState) => state.rooms.searchName);
+
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
   const onlineUsers = useSelector(
     (state: RootState) => state.onlineUsers.onlineUsers,
@@ -48,17 +32,25 @@ export default function RoomList({
   const { roomId: activeRoomId } = useParams();
   const router = useRouter();
 
-  if (rooms.length === 0) {
+  const type = useSelector((state: RootState) => state.rooms.type);
+
+  const filteredRooms = rooms.filter((room: TRoom) => {
+    if (type === "All") return true;
+    if (type === "Direct") return room.type === "direct";
+    if (type === "Groups") return room.type === "group";
+    return true;
+  });
+
+  if (filteredRooms.length === 0) {
     return (
       <p className="text-muted px-4 py-6 text-center text-xs">
-        No conversations yet
+        {searchName ? `No results for "${searchName}"` : "No conversations yet"}
       </p>
     );
   }
-
   return (
     <div className="flex flex-col">
-      {rooms.map((room: TRoom) => {
+      {filteredRooms.map((room: TRoom) => {
         const isActive = room.roomId === activeRoomId;
         const otherMember =
           room.type === "direct"
@@ -116,8 +108,8 @@ export default function RoomList({
               </p>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="text-muted text-[9px]">
-                {timeAgo(room.lastMessageAt)}
+              <span className="text-muted text-[10px]">
+                {lastMessageAgo(room.lastMessageAt)}
               </span>
             </div>
           </div>

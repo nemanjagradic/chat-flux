@@ -88,10 +88,41 @@ export type TMessage = {
   senderId: string;
   recipientId?: string;
   content: string;
+  isStarred: boolean;
   status?: string;
   deliveredAt?: Date;
   readAt?: Date;
   deliveredTo?: UserStatus[];
   readBy?: UserStatus[];
   createdAt: string;
+};
+
+export type TStarredMessage = {
+  _id: string;
+  content: string;
+  customRoomId: string;
+  senderId: {
+    _id: string;
+    name: string;
+    photo?: string;
+  };
+  roomId?: {
+    _id: string;
+    name?: string;
+    roomId: string;
+  };
+  recipientId?: string;
+  isStarred: boolean;
+  createdAt: string;
+  status?: string;
+};
+
+export type TSessionItem = {
+  _id: string;
+  userAgent?: string;
+  ip?: string;
+  location?: string;
+  createdAt: string;
+  lastUsedAt: string;
+  isCurrent: boolean;
 };

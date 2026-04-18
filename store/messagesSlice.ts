@@ -115,6 +115,22 @@ const messagesSlice = createSlice({
         }
       }
     },
+    updateMessageStar(
+      state,
+      action: PayloadAction<{
+        roomId: string;
+        messageId: string;
+        isStarred: boolean;
+      }>,
+    ) {
+      const messages = state.messagesByRoom[action.payload.roomId];
+      if (messages) {
+        const message = messages.find(
+          (m) => m._id === action.payload.messageId,
+        );
+        if (message) message.isStarred = action.payload.isStarred;
+      }
+    },
   },
 });
 

@@ -1,11 +1,13 @@
+import { IoMdSearch } from "react-icons/io";
+import ConversationsMenu from "../../../../components/ConversationsMenu";
+import Input from "../../../../components/UI/Input";
+import Header from "../../../../components/UI/Header";
+import RoomList from "../../../../components/RoomList";
 import { getCurrentUser } from "../../../../lib/session";
 import { redirect } from "next/navigation";
-import GroupList from "../../../../components/GroupList";
 import { getUserRooms } from "../../../../actions/roomsActions";
-import Header from "../../../../components/UI/Header";
-import SearchConversations from "../../../../components/SearchConversations";
 
-export default async function GroupsLayout({
+export default async function StarredPageLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -14,17 +16,22 @@ export default async function GroupsLayout({
   if (!user) redirect("/auth");
 
   const result = await getUserRooms(user._id);
-  const initialRooms = result && "rooms" in result ? result.rooms : [];
-
+  const rooms = result && "rooms" in result ? result.rooms : [];
   return (
     <div className="bg-base relative flex h-screen w-full">
       <div className="bg-surface border-accent/20 flex w-80 flex-col gap-2 border-r">
         <div className="border-accent/20 border-b p-4">
-          <Header>Groups</Header>
-          <SearchConversations userId={user._id} onlyGroups />
+          <Header>Messages</Header>
+          <Input
+            type="text"
+            name="search"
+            placeholder="Search conversations..."
+            icon={IoMdSearch}
+          />
         </div>
+        <ConversationsMenu />
         <div className="flex-1 overflow-y-auto">
-          <GroupList initialRooms={initialRooms} />
+          <RoomList currentUserId={user._id} initialRooms={rooms} />
         </div>
       </div>
       {children}

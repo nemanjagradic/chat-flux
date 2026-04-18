@@ -2,7 +2,7 @@
 
 import { AuthUser, SearchedUser } from "@/app/types";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { IoSend } from "react-icons/io5";
 import { socket } from "../lib/socket";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,33 +13,13 @@ import Message from "./Message";
 import { TMessage } from "@/app/types";
 import MessageInfoModal from "./MessageInfoModal";
 import { toast } from "sonner";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
-
-function formatTime(date: string) {
-  return new Date(date).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatLastSeen(date: string) {
-  const diff = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return new Date(date).toLocaleDateString("en-GB");
-}
-
-const emptyMessages: TMessage[] = [];
+import { toggleMessageStar } from "../actions/messagesActions";
+import { useChatScrollAndMessages } from "../hooks/useChatScrollAndMessages";
+import {
+  formatLastSeen,
+  formatMessageTime,
+  getInitials,
+} from "../lib/formatters";
 
 export default function Chat({
   currentUser,
@@ -64,11 +44,36 @@ export default function Chat({
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
 
   const dispatch = useDispatch();
-  const messages = useSelector(
-    (state: RootState) =>
-      state.messages.messagesByRoom[roomId] ?? emptyMessages,
-  );
-  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const { messages, bottomRef } = useChatScrollAndMessages({
+    roomId,
+    initialMessages,
+  });
+
+  const handleStarredMessage = async (
+    messageId: string,
+    isStarred: boolean,
+  ) => {
+    const result = await toggleMessageStar({ messageId, isStarred });
+    if (!result || "error" in result) {
+      toast.error("error" in result ? result.error : "Something went wrong");
+      return;
+    }
+    dispatch(
+      messagesActions.updateMessageStar({
+        roomId,
+        messageId,
+        isStarred: !isStarred,
+      }),
+    );
+    toast(result.message, {
+      icon: "⭐",
+      style: {
+        background: "#141e35",
+        color: "#ffd200",
+      },
+    });
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,12 +86,6 @@ export default function Chat({
     });
     setMessage("");
   };
-
-  useEffect(() => {
-    dispatch(
-      messagesActions.setMessages({ roomId, messages: initialMessages }),
-    );
-  }, [dispatch, initialMessages, roomId]);
 
   useEffect(() => {
     socket.emit("joinRoom", { roomId });
@@ -136,10 +135,6 @@ export default function Chat({
       socket.off("messageError");
     };
   }, [dispatch, roomId]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -194,13 +189,16 @@ export default function Chat({
         {messages.map((msg: TMessage) => (
           <Message
             key={msg._id}
+            id={msg._id}
             text={msg.content}
-            time={formatTime(msg.createdAt)}
+            time={formatMessageTime(msg.createdAt)}
             status={msg.status}
             onInfoClick={() => setSelectedMessage(msg)}
             deliveredAt={msg.deliveredAt}
             readAt={msg.readAt}
             isOwn={msg.senderId === currentUser._id}
+            isStarred={msg.isStarred}
+            onStarClick={() => handleStarredMessage(msg._id, msg.isStarred)}
           />
         ))}
         <div ref={bottomRef} />

@@ -9,14 +9,7 @@ import Header from "./UI/Header";
 import Input from "./UI/Input";
 import CreateGroupInsteadButton from "./CreateGroupInsteadButton";
 import Link from "next/link";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
+import { getInitials } from "../lib/formatters";
 
 export default function NewConversation({ user }: { user: AuthUser }) {
   const [results, setResults] = useState<SearchedUser[]>([]);

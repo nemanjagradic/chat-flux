@@ -8,7 +8,8 @@ import { useEffect } from "react";
 import { TRoom } from "@/app/types";
 
 export default function GroupList({ initialRooms }: { initialRooms: TRoom[] }) {
-  const rooms = useSelector((state: RootState) =>
+  const searchName = useSelector((state: RootState) => state.rooms.searchName);
+  const groupRooms = useSelector((state: RootState) =>
     state.rooms.rooms.filter((r) => r.type === "group"),
   );
   const dispatch = useDispatch();
@@ -20,15 +21,17 @@ export default function GroupList({ initialRooms }: { initialRooms: TRoom[] }) {
   const { roomId: activeRoomId } = useParams();
   const router = useRouter();
 
-  if (rooms.length === 0) {
+  if (groupRooms.length === 0) {
     return (
-      <p className="text-muted px-4 py-6 text-center text-xs">No groups yet</p>
+      <p className="text-muted px-4 py-6 text-center text-xs">
+        {searchName ? `No results for "${searchName}"` : "No groups yet"}
+      </p>
     );
   }
 
   return (
     <div className="flex flex-col">
-      {rooms.map((room: TRoom) => {
+      {groupRooms.map((room: TRoom) => {
         const isActive = room.roomId === activeRoomId;
 
         return (

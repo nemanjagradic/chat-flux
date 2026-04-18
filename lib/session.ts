@@ -7,8 +7,15 @@ import connectDB from "./mongodb";
 import { AuthUser } from "@/app/types";
 import User, { UserType } from "../models/userModel";
 import Room from "../models/roomModel";
+import { catchAsyncAction } from "./catchAsync";
+import { AppError } from "./appError";
 
-export async function createSession(userId: string) {
+export async function createSession(
+  userId: string,
+  userAgent?: string,
+  ip?: string,
+  location?: string,
+) {
   await connectDB();
 
   const sessionToken = crypto.randomBytes(32).toString("hex");
@@ -18,6 +25,9 @@ export async function createSession(userId: string) {
     userId,
     token: sessionToken,
     expiresAt: expiresAt,
+    userAgent,
+    ip,
+    location,
   });
 
   (await cookies()).set("session", sessionToken, {
@@ -57,30 +67,109 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   };
 }
 
-export async function logout() {
+export const getUserSessions = catchAsyncAction(async (userId: string) => {
   await connectDB();
   const sessionToken = (await cookies()).get("session")?.value;
-  if (sessionToken) await Session.deleteOne({ token: sessionToken });
-  (await cookies()).delete("session");
+
+  const sessions = await Session.find({ userId }).sort({ lastUsedAt: -1 });
+
+  return {
+    sessions: JSON.parse(
+      JSON.stringify(
+        sessions.map((s) => ({
+          _id: s._id.toString(),
+          userAgent: s.userAgent,
+          ip: s.ip,
+          location: s.location ?? "Unknown",
+          createdAt: s.createdAt,
+          lastUsedAt: s.lastUsedAt,
+          isCurrent: s.token === sessionToken,
+        })),
+      ),
+    ),
+  };
+});
+
+export async function getLocationFromIp(ip?: string): Promise<string> {
+  if (!ip || ip === "::1" || ip === "127.0.0.1") return "Localhost";
+  try {
+    const res = await fetch(`https://ipapi.co/${ip}/json/`);
+    const data = await res.json();
+    if (data.city && data.country_code) {
+      return `${data.city}, ${data.country_code}`;
+    }
+    return "Unknown";
+  } catch {
+    return "Unknown";
+  }
+}
+
+export async function logout() {
+  try {
+    await connectDB();
+    const sessionToken = (await cookies()).get("session")?.value;
+    if (sessionToken) await Session.deleteOne({ token: sessionToken });
+    (await cookies()).delete("session");
+    return { message: "Logged out successfully" };
+  } catch {
+    return { error: "Failed to logout" };
+  }
 }
 
 export async function deleteAccount() {
+  try {
+    await connectDB();
+    const sessionToken = (await cookies()).get("session")?.value;
+    if (!sessionToken) return { error: "Unauthorized" };
+
+    const session = await Session.findOne({ token: sessionToken });
+    if (!session) return { error: "Session not found" };
+
+    const userId = session.userId;
+
+    await Room.updateMany(
+      { type: "group", members: userId },
+      { $pull: { members: userId } },
+    );
+
+    await Session.deleteMany({ userId });
+    await User.findByIdAndDelete(userId);
+    (await cookies()).delete("session");
+
+    return { message: "Account deleted successfully" };
+  } catch {
+    return { error: "Failed to delete account" };
+  }
+}
+
+export const revokeSession = catchAsyncAction(async (sessionId: string) => {
   await connectDB();
   const sessionToken = (await cookies()).get("session")?.value;
-  if (!sessionToken) return;
+  if (!sessionToken) throw new AppError("Unauthorized", 401);
 
-  const session = await Session.findOne({ token: sessionToken });
-  if (!session) return;
+  const currentSession = await Session.findOne({ token: sessionToken });
+  if (!currentSession) throw new AppError("Unauthorized", 401);
 
-  const userId = session.userId;
+  await Session.findOneAndDelete({
+    _id: sessionId,
+    userId: currentSession.userId,
+  });
 
-  await Room.updateMany(
-    { type: "group", members: userId },
-    { $pull: { members: userId } },
-  );
+  return { message: "Session revoked" };
+});
 
-  await Session.deleteMany({ userId });
-  await User.findByIdAndDelete(userId);
+export const revokeAllSessions = catchAsyncAction(async () => {
+  await connectDB();
+  const sessionToken = (await cookies()).get("session")?.value;
+  if (!sessionToken) throw new AppError("Unauthorized", 401);
 
-  (await cookies()).delete("session");
-}
+  const currentSession = await Session.findOne({ token: sessionToken });
+  if (!currentSession) throw new AppError("Unauthorized", 401);
+
+  await Session.deleteMany({
+    userId: currentSession.userId,
+    _id: { $ne: currentSession._id },
+  });
+
+  return { message: "All other sessions revoked" };
+});
