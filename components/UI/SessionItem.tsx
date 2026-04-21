@@ -24,7 +24,10 @@ export default function SessionItem({
   const os = parser.getOS();
   const device = parser.getDevice();
 
-  const deviceName = device.model ?? `${os.name ?? "Desktop"} PC`;
+  const deviceName =
+    device.type === "mobile"
+      ? `${os.name ?? "Mobile"} ${device.model ?? "Phone"}`
+      : `${os.name ?? "Desktop"} PC`;
 
   let Icon = MdComputer;
   if (device.type === "mobile") Icon = MdPhoneIphone;

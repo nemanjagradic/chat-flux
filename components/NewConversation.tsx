@@ -12,12 +12,14 @@ import Link from "next/link";
 import { getInitials } from "../lib/formatters";
 
 export default function NewConversation({ user }: { user: AuthUser }) {
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchedUser[]>([]);
   const [isPending, setIsPending] = useState(false);
 
   async function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    const query = e.target.value;
-    if (!query.trim()) {
+    const value = e.target.value;
+    setQuery(value);
+    if (!value.trim()) {
       setResults([]);
       return;
     }
@@ -47,13 +49,13 @@ export default function NewConversation({ user }: { user: AuthUser }) {
 
       <div className="bg-panel flex-1 overflow-y-auto py-5">
         {isPending && <p className="text-muted px-6 text-sm">Searching...</p>}
-
         {!isPending && results.length === 0 && (
           <p className="text-muted px-6 text-sm">
-            Search for someone to start a conversation.
+            {query
+              ? `No results for "${query}"`
+              : "Search for someone to start a conversation."}
           </p>
         )}
-
         {!isPending && results.length > 0 && (
           <>
             <p className="text-muted font-display px-6 pb-3 text-xs font-semibold tracking-widest uppercase">

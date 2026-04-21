@@ -179,7 +179,7 @@ export default function AppLayout({
   ]);
 
   return (
-    <div className="bg-base relative flex h-screen w-full overflow-hidden">
+    <div className="bg-base relative flex h-dvh w-full overflow-hidden">
       <Sidebar user={user} />
       {children}
       {isGroupModalShow && <CreateGroupModal user={user} />}
