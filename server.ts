@@ -27,7 +27,7 @@ async function startServer() {
   const httpServer = createServer(handler);
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.NEXT_PUBLIC_APP_URL,
       credentials: true,
     },
   });
@@ -84,8 +84,8 @@ async function startServer() {
     await onUserConnect(userId, socket, io);
   });
 
-  httpServer.listen(3000, () => {
-    console.log("Server running on port 3000");
+  httpServer.listen(process.env.PORT, () => {
+    console.log(`Server running on port ${process.env.PORT}`);
   });
 }
 

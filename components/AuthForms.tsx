@@ -7,7 +7,11 @@ import { Dispatch, SetStateAction, useState } from "react";
 import Link from "next/link";
 import Input from "./UI/Input";
 import Button from "./UI/Button";
-import { signupUser, signinUser } from "../actions/userActions";
+import {
+  signupUser,
+  signinUser,
+  createGuestUser,
+} from "../actions/userActions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { socket } from "../lib/socket";
@@ -18,6 +22,36 @@ export default function AuthForms() {
   const [mode, setMode] = useState("signin");
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+
+  const handleGuestLogin = async () => {
+    setIsPending(true);
+    setError(null);
+
+    const result = await createGuestUser(null);
+
+    if (!result) {
+      setIsPending(false);
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+
+    if ("error" in result) {
+      setError(result.error);
+      setIsPending(false);
+      return;
+    }
+
+    const res = await fetch("/api/session");
+    const { token } = await res.json();
+    socket.auth = { sessionToken: token };
+    socket.connect();
+
+    toast.success(result.message);
+    setTimeout(() => {
+      router.push("/conversations");
+    }, 2500);
+    setIsPending(false);
+  };
 
   const handleSubmit = async (formData: FormData) => {
     setIsPending(true);
@@ -103,6 +137,7 @@ export default function AuthForms() {
         <SigninForm
           setMode={setMode}
           handleSubmit={handleSubmit}
+          onGuestLogin={handleGuestLogin}
           error={error}
           isPending={isPending}
         />
@@ -120,11 +155,13 @@ export default function AuthForms() {
 const SigninForm = ({
   setMode,
   handleSubmit,
+  onGuestLogin,
   error,
   isPending,
 }: {
   setMode: Dispatch<SetStateAction<string>>;
   handleSubmit: (formData: FormData) => void;
+  onGuestLogin: () => void;
   error: string | null;
   isPending: boolean;
 }) => {
@@ -161,6 +198,21 @@ const SigninForm = ({
           Create one free
         </span>
       </p>
+      <div className="flex items-center gap-3">
+        <div className="border-accent/20 flex-1 border-t" />
+        <span className="text-muted text-xs">or</span>
+        <div className="border-accent/20 flex-1 border-t" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onGuestLogin}
+        disabled={isPending}
+        className="border-accent/20 text-muted hover:bg-panel2 hover:text-text flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <span>👤</span>
+        {isPending ? "Loading..." : "Continue as Guest"}
+      </button>
     </form>
   );
 };

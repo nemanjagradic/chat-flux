@@ -11,6 +11,11 @@ export default function AccountForm({ user }: { user: AuthUser }) {
   const [state, action, isPending] = useActionState(updateAccount, null);
 
   const handleSubmit = (formData: FormData) => {
+    if (user.isGuest) {
+      toast.info("Not available for guest accounts");
+      return;
+    }
+
     const email = formData.get("email")?.toString() ?? "";
     const currentPassword = formData.get("currentPassword")?.toString() ?? "";
     const newPassword = formData.get("newPassword")?.toString() ?? "";

@@ -9,10 +9,17 @@ import { deleteAccount, logout } from "../lib/session";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../store";
+import { uiActions } from "../store/uiSlice";
 
 export default function Danger() {
   const router = useRouter();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const isShowLogoutModal = useSelector(
+    (state: RootState) => state.ui.isLogoutModalShow,
+  );
+  const dispatch = useDispatch();
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleLogout = async () => {
@@ -44,13 +51,13 @@ export default function Danger() {
   };
   return (
     <div className="flex-1">
-      {showLogoutModal && (
+      {isShowLogoutModal && (
         <ConfirmModal
           title="Log Out"
           description="Are you sure you want to sign out of your current session?"
           confirmLabel="Log Out"
           onConfirm={() => handleLogout()}
-          onClose={() => setShowLogoutModal(false)}
+          onClose={() => dispatch(uiActions.closeLogoutModal())}
           dangerous={false}
         />
       )}
@@ -79,7 +86,7 @@ export default function Danger() {
               iconBg="bg-danger/20"
               actionLabel="Log Out"
               actionStyle="text-danger"
-              onAction={() => setShowLogoutModal(true)}
+              onAction={() => dispatch(uiActions.showLogoutModal())}
             />
           </div>
           <div className="bg-panel border-accent/10 divide-accent/10 divide-y border-b">

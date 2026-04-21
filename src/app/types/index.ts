@@ -11,6 +11,7 @@ export type AuthUser = {
   desktopNotifications?: boolean;
   groupAlerts?: boolean;
   doNotDisturb?: boolean;
+  isGuest?: boolean;
 };
 
 export type SigninData = {

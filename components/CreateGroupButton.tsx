@@ -11,7 +11,7 @@ export default function CreateGroupButton({
 }: {
   width?: string;
   margin?: string;
-  hidden: boolean;
+  hidden?: boolean;
 }) {
   const dispatch = useDispatch();
   const showGroupModal = () => {

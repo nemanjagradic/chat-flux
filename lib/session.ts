@@ -9,6 +9,7 @@ import User, { UserType } from "../models/userModel";
 import Room from "../models/roomModel";
 import { catchAsyncAction } from "./catchAsync";
 import { AppError } from "./appError";
+import Message from "../models/messageModel";
 
 export async function createSession(
   userId: string,
@@ -64,6 +65,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     desktopNotifications: user.desktopNotifications,
     groupAlerts: user.groupAlerts,
     doNotDisturb: user.doNotDisturb,
+    isGuest: user.isGuest,
   };
 }
 
@@ -139,6 +141,33 @@ export async function deleteAccount() {
     return { message: "Account deleted successfully" };
   } catch {
     return { error: "Failed to delete account" };
+  }
+}
+
+export async function deleteGuestData() {
+  try {
+    await connectDB();
+
+    const sessionToken = (await cookies()).get("session")?.value;
+    if (!sessionToken) return { error: "Unauthorized" };
+
+    const session = await Session.findOne({ token: sessionToken });
+    if (!session) return { error: "Session not found" };
+
+    const userId = session.userId;
+
+    const guestRooms = await Room.find({ members: userId });
+    const roomIds = guestRooms.map((r) => r.roomId).filter(Boolean) as string[];
+
+    await Message.deleteMany({ customRoomId: { $in: roomIds } });
+    await Room.deleteMany({ members: userId });
+    await Session.deleteOne({ userId });
+    await User.findByIdAndDelete(userId);
+    (await cookies()).delete("session");
+
+    return { message: "Guest session ended" };
+  } catch {
+    return { error: "Failed to end guest session" };
   }
 }
 

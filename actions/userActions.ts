@@ -16,6 +16,7 @@ import { revalidatePath } from "next/cache";
 import { uploadImage } from "../lib/cloudinary";
 import Session from "../models/sessionModel";
 import { cookies, headers } from "next/headers";
+import { v4 as uuidv4 } from "uuid";
 
 export const signupUser = catchAsyncAction<
   SignupData,
@@ -83,6 +84,41 @@ export const signinUser = catchAsyncAction<
       email: user.email,
       username: user.username,
       photo: user.photo,
+    },
+  };
+});
+
+export const createGuestUser = catchAsyncAction<
+  null,
+  { message: string; user: AuthUser }
+>(async () => {
+  await connectDB();
+
+  const guestId = uuidv4().slice(0, 8);
+
+  const newGuestUser = await User.create({
+    name: `Guest user`,
+    username: `guest_${guestId}`,
+    email: `guest_${guestId}@guest.com`,
+    password: "guest123",
+    passwordConfirm: "guest123",
+    isGuest: true,
+  });
+
+  const headersList = await headers();
+  const userAgent = headersList.get("user-agent") ?? undefined;
+  const ip = headersList.get("x-forwarded-for") ?? undefined;
+  const location = await getLocationFromIp(ip);
+
+  await createSession(newGuestUser._id.toString(), userAgent, ip, location);
+
+  return {
+    message: "Signed in as guest",
+    user: {
+      _id: newGuestUser._id.toString(),
+      name: newGuestUser.name,
+      email: newGuestUser.email,
+      username: newGuestUser.username,
     },
   };
 });
@@ -228,6 +264,8 @@ export const updateAccount = catchAsyncFormAction(
       userId: UserType & { password: string; passwordConfirm: string };
     }>("userId", "+password");
     if (!session?.userId) throw new AppError("Unauthorized", 401);
+    if (session?.userId.isGuest)
+      return { message: "Not available for guest accounts" };
 
     const user = session.userId;
 
