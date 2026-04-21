@@ -19,7 +19,7 @@ export default async function StarredPageLayout({
   const rooms = result && "rooms" in result ? result.rooms : [];
   return (
     <div className="bg-base relative flex h-screen w-full">
-      <div className="bg-surface border-accent/20 flex w-80 flex-col gap-2 border-r">
+      <div className="bg-surface border-accent/20 hidden flex-col gap-2 border-r md:flex md:w-64 lg:flex lg:w-80">
         <div className="border-accent/20 border-b p-4">
           <Header>Messages</Header>
           <Input

@@ -17,8 +17,8 @@ export default function StarredMessages({
   const router = useRouter();
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="bg-panel2 border-accent/10 flex items-center gap-4 border-b px-6 py-4">
+    <div className="flex min-w-0 flex-1 flex-col">
+      <div className="bg-panel2 border-accent/10 flex shrink-0 items-center gap-4 border-b px-6 py-4">
         <div>
           <div className="flex items-center gap-2">
             <FaStar className="text-xl text-yellow-400" />
@@ -31,7 +31,7 @@ export default function StarredMessages({
           </p>
         </div>
       </div>
-      <div className="bg-panel flex flex-1 flex-col overflow-y-auto">
+      <div className="bg-panel flex w-full flex-1 flex-col overflow-x-hidden overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3">
             <div className="bg-panel2 border-accent/10 flex h-16 w-16 items-center justify-center rounded-2xl border">
@@ -45,7 +45,7 @@ export default function StarredMessages({
             </p>
           </div>
         ) : (
-          <div className="divide-accent/5 flex flex-col divide-y">
+          <div className="divide-accent/5 flex w-full flex-col divide-y">
             {messages.map((msg) => {
               const isOwn = msg.senderId._id === currentUser._id;
               const senderName = isOwn ? "You" : msg.senderId.name;
@@ -61,9 +61,8 @@ export default function StarredMessages({
                       `/conversations/${customRoomId}?messageId=${msg._id}`,
                     )
                   }
-                  className="hover:bg-panel2/50 flex cursor-pointer items-start gap-3 px-5 py-4 transition-colors"
+                  className="hover:bg-panel2/50 flex cursor-pointer items-start gap-3 overflow-hidden px-5 py-4 transition-colors"
                 >
-                  {" "}
                   <div className="bg-accent/20 relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
                     {senderPhoto ? (
                       <Image
@@ -78,16 +77,18 @@ export default function StarredMessages({
                       </span>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="w-full min-w-0 flex-1 overflow-hidden">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-display text-text text-xs font-semibold">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span className="font-display text-text truncate text-xs font-semibold">
                           {senderName}
                         </span>
                         {roomName && (
                           <>
-                            <span className="text-muted text-xs">in</span>
-                            <span className="text-accent text-xs">
+                            <span className="text-muted shrink-0 text-xs">
+                              in
+                            </span>
+                            <span className="text-accent truncate text-xs">
                               {roomName}
                             </span>
                           </>
@@ -100,7 +101,7 @@ export default function StarredMessages({
                         </span>
                       </div>
                     </div>
-                    <p className="text-text/80 line-clamp-2 text-sm leading-relaxed">
+                    <p className="text-text/80 line-clamp-2 text-sm leading-relaxed break-all">
                       {msg.content}
                     </p>
                   </div>

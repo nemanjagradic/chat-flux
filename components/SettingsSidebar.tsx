@@ -24,30 +24,43 @@ export default function SettingsSidebar() {
   ];
 
   return (
-    <div className="bg-surface border-accent/20 flex flex-col border-r">
-      {settingsSidebarItems.map((item) => {
-        return (
+    <>
+      <div className="bg-surface border-accent/20 hidden flex-col border-r lg:flex">
+        {settingsSidebarItems.map((item) => (
           <Link
             key={item.title}
             href={`/settings/${item.link}`}
-            className={`${pathname.startsWith(`/settings/${item.link}`) ? "bg-panel2" : "transparent"} flex items-center p-5 transition-colors ${
+            className={`flex items-center p-5 transition-colors ${
               pathname.startsWith(`/settings/${item.link}`)
-                ? "bg-accent/15 text-accent border-accent border-l-4"
-                : "text-muted hover:text-text hover:bg-accent/7"
+                ? "border-accent bg-accent/15 text-accent border-l-4"
+                : "text-muted hover:bg-accent/7 hover:text-text"
             }`}
           >
             <item.icon
               size={20}
-              className={`mr-4 ${
-                pathname.startsWith(`/settings/${item.link}`)
-                  ? "text-white"
-                  : "text-muted"
-              } `}
+              className={`mr-4 ${pathname.startsWith(`/settings/${item.link}`) ? "text-white" : "text-muted"}`}
             />
             {item.title}
           </Link>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+
+      <div className="bg-surface border-accent/20 flex overflow-x-auto border-b lg:hidden">
+        {settingsSidebarItems.map((item) => (
+          <Link
+            key={item.title}
+            href={`/settings/${item.link}`}
+            className={`xs:px-3 flex flex-1 flex-col items-center gap-1 px-2 py-3 text-center transition-colors ${
+              pathname.startsWith(`/settings/${item.link}`)
+                ? "border-accent text-accent border-b-2"
+                : "text-muted hover:text-text"
+            }`}
+          >
+            <item.icon size={18} />
+            <span className="text-[10px]">{`${item.link[0].toUpperCase() + item.link.slice(1)}`}</span>
+          </Link>
+        ))}
+      </div>
+    </>
   );
 }

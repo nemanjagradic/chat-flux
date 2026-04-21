@@ -2,7 +2,7 @@
 
 import { AuthUser } from "@/app/types";
 import { useEffect, useState } from "react";
-import { IoSend } from "react-icons/io5";
+import { IoArrowBack, IoSend } from "react-icons/io5";
 import { socket } from "../lib/socket";
 import { useDispatch, useSelector } from "react-redux";
 import { messagesActions } from "../store/messagesSlice";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { toggleMessageStar } from "../actions/messagesActions";
 import { useChatScrollAndMessages } from "../hooks/useChatScrollAndMessages";
 import { formatMessageTime } from "../lib/formatters";
+import { useRouter } from "next/navigation";
 
 export default function GroupChat({
   currentUser,
@@ -45,6 +46,7 @@ export default function GroupChat({
   const [message, setMessage] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const { messages, bottomRef } = useChatScrollAndMessages({
     roomId,
@@ -151,6 +153,12 @@ export default function GroupChat({
       )}
       <div className="bg-panel2 border-accent/10 flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/conversations")}
+            className="text-muted hover:text-text transition-colors md:hidden"
+          >
+            <IoArrowBack className="text-xl" />
+          </button>
           <div className="bg-accent/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
             <span className="text-xl">{room.icon ?? "👥"}</span>
           </div>

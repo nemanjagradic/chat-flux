@@ -46,8 +46,8 @@ export default function ProfileForm({ user }: { user: AuthUser }) {
   return (
     <form className="mt-4 space-y-6" action={handleSubmit}>
       <div className="bg-panel2 w-full rounded-2xl">
-        <div className="flex items-center p-4">
-          <div className="relative mr-5 h-20 w-20 overflow-hidden rounded-full">
+        <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-center sm:p-4">
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full sm:h-20 sm:w-20">
             <Image
               src={photoPreview || user.photo || defaultAvatar}
               alt="Profile"
@@ -55,29 +55,27 @@ export default function ProfileForm({ user }: { user: AuthUser }) {
               className="object-cover"
             />
           </div>
-          <div>
-            <h2 className="font-display text-text mb-2 text-xl font-extrabold">
+          <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
+            <h2 className="font-display text-text mb-1 text-xl font-extrabold">
               {user.name}
             </h2>
-            <p className="text-muted font-body mb-2 text-sm">
+            <p className="text-muted font-body mb-3 text-sm">
               @{user.username}
             </p>
-            <div className="flex items-center gap-x-4">
-              <input
-                type="file"
-                id="photo"
-                name="photo"
-                accept="image/*"
-                onChange={(e) => handlePhotoChange(e)}
-                className="absolute -z-10 h-0 w-0 opacity-0"
-              />
-              <label
-                htmlFor="photo"
-                className="text-text cursor-pointer text-sm hover:underline"
-              >
-                Edit photo →
-              </label>
-            </div>
+            <input
+              type="file"
+              id="photo"
+              name="photo"
+              accept="image/*"
+              onChange={(e) => handlePhotoChange(e)}
+              className="absolute -z-10 h-0 w-0 opacity-0"
+            />
+            <label
+              htmlFor="photo"
+              className="text-text cursor-pointer text-sm hover:underline"
+            >
+              Edit photo →
+            </label>
           </div>
         </div>
       </div>

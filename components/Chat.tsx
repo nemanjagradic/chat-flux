@@ -20,6 +20,8 @@ import {
   formatMessageTime,
   getInitials,
 } from "../lib/formatters";
+import { IoArrowBack } from "react-icons/io5";
+import { useRouter } from "next/navigation";
 
 export default function Chat({
   currentUser,
@@ -44,6 +46,7 @@ export default function Chat({
   const [selectedMessage, setSelectedMessage] = useState<TMessage | null>(null);
 
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const { messages, bottomRef } = useChatScrollAndMessages({
     roomId,
@@ -137,7 +140,7 @@ export default function Chat({
   }, [dispatch, roomId]);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-w-0 flex-1 flex-col">
       {selectedMessage && (
         <MessageInfoModal
           message={selectedMessage}
@@ -146,6 +149,12 @@ export default function Chat({
       )}
       <div className="bg-panel2 border-accent/10 flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/conversations")}
+            className="text-muted hover:text-text transition-colors md:hidden"
+          >
+            <IoArrowBack className="text-xl" />
+          </button>
           <div className="bg-surface relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
             {recipientUser.photo ? (
               <Image
@@ -179,7 +188,7 @@ export default function Chat({
           </div>
         </div>
       </div>
-      <div className="bg-panel flex flex-1 flex-col gap-2 overflow-y-auto p-5">
+      <div className="bg-panel flex flex-1 flex-col gap-2 overflow-y-auto p-2.5 sm:p-5">
         {messages.length === 0 && (
           <div className="flex flex-1 items-center justify-center">
             <p className="text-muted text-xs">No messages yet. Say hello! 👋</p>

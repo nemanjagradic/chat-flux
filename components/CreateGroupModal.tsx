@@ -95,9 +95,9 @@ export default function CreateGroupModal({ user }: { user: AuthUser }) {
         </div>
         <form className="flex flex-col gap-4 px-6 py-5" onSubmit={handleSubmit}>
           {errors.length > 0 && (
-            <div className="bg-accent2/10 border-accent2/20 rounded-xl border px-4 py-3">
+            <div className="bg-accent/10 border-accent/20 rounded-xl border px-4 py-3">
               {errors.map((error, i) => (
-                <p key={i} className="text-accent2 text-xs">
+                <p key={i} className="text-accent text-xs">
                   {error}
                 </p>
               ))}

@@ -32,6 +32,8 @@ input:-webkit-autofill:focus {
 
   --font-display: "Syne", sans-serif;
   --font-body: "DM Sans", sans-serif;
+
+  --breakpoint-xs: 400px;
 }
 
 @layer base {
