@@ -13,9 +13,14 @@ import Message from "../models/messageModel";
 
 export async function createSession(
   userId: string,
-  userAgent?: string,
   ip?: string,
   location?: string,
+  deviceInfo?: {
+    browserName?: string;
+    osName?: string;
+    deviceType?: string;
+    deviceModel?: string;
+  },
 ) {
   await connectDB();
 
@@ -26,9 +31,12 @@ export async function createSession(
     userId,
     token: sessionToken,
     expiresAt: expiresAt,
-    userAgent,
     ip,
     location,
+    browserName: deviceInfo?.browserName,
+    osName: deviceInfo?.osName,
+    deviceType: deviceInfo?.deviceType,
+    deviceModel: deviceInfo?.deviceModel,
   });
 
   (await cookies()).set("session", sessionToken, {
@@ -80,9 +88,12 @@ export const getUserSessions = catchAsyncAction(async (userId: string) => {
       JSON.stringify(
         sessions.map((s) => ({
           _id: s._id.toString(),
-          userAgent: s.userAgent,
           ip: s.ip,
           location: s.location ?? "Unknown",
+          browserName: s.browserName,
+          deviceType: s.deviceType,
+          deviceModel: s.deviceModel,
+          osName: s.osName,
           createdAt: s.createdAt,
           lastUsedAt: s.lastUsedAt,
           isCurrent: s.token === sessionToken,
@@ -93,6 +104,7 @@ export const getUserSessions = catchAsyncAction(async (userId: string) => {
 });
 
 export async function getLocationFromIp(ip?: string): Promise<string> {
+  console.log("Getting location for IP:", ip);
   if (!ip || ip === "::1" || ip === "127.0.0.1") return "Localhost";
   try {
     const res = await fetch(`https://ipapi.co/${ip}/json/`);

@@ -17,6 +17,7 @@ export type AuthUser = {
 export type SigninData = {
   email: string;
   password: string;
+  deviceInfo?: TDeviceInfo;
 };
 
 export type SignupData = {
@@ -25,6 +26,14 @@ export type SignupData = {
   email: string;
   password: string;
   passwordConfirm: string;
+  deviceInfo?: TDeviceInfo;
+};
+
+export type TDeviceInfo = {
+  browserName?: string;
+  deviceType?: string;
+  deviceModel?: string;
+  osName?: string;
 };
 
 export type SearchedUser = {
@@ -120,7 +129,10 @@ export type TStarredMessage = {
 
 export type TSessionItem = {
   _id: string;
-  userAgent?: string;
+  browserName?: string;
+  deviceType?: string;
+  deviceModel?: string;
+  osName?: string;
   ip?: string;
   location?: string;
   createdAt: string;

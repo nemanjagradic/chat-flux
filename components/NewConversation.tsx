@@ -31,7 +31,7 @@ export default function NewConversation({ user }: { user: AuthUser }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="bg-panel border-accent/20 flex items-center justify-between border-b p-8">
+      <div className="bg-panel border-accent/20 flex flex-wrap items-center justify-between gap-2 border-b p-5 sm:p-8">
         <Header>New Conversation</Header>
         <CreateGroupInsteadButton />
       </div>

@@ -3,7 +3,6 @@ import { TSessionItem } from "@/app/types";
 import { BsGlobe } from "react-icons/bs";
 import { MdComputer, MdPhoneIphone, MdTablet } from "react-icons/md";
 import { HiOutlineLocationMarker } from "react-icons/hi";
-import * as UAParser from "ua-parser-js";
 import { formatLastSeen } from "../../lib/formatters";
 
 function formatLastUsed(date: string, isCurrent: boolean) {
@@ -19,19 +18,16 @@ export default function SessionItem({
   session: TSessionItem;
   onRevoke: (id: string) => void;
 }) {
-  const parser = new UAParser.UAParser(session.userAgent);
-  const browser = parser.getBrowser();
-  const os = parser.getOS();
-  const device = parser.getDevice();
-
   const deviceName =
-    device.type === "mobile"
-      ? `${os.name ?? "Mobile"} ${device.model ?? "Phone"}`
-      : `${os.name ?? "Desktop"} PC`;
+    session.deviceType === "mobile"
+      ? `${session.osName ?? "Mobile"} ${session.deviceModel ?? "Phone"}`
+      : session.deviceType === "tablet"
+        ? `${session.osName ?? "Tablet"} ${session.deviceModel ?? "Tablet"}`
+        : `${session.osName ?? "Desktop"} PC`;
 
   let Icon = MdComputer;
-  if (device.type === "mobile") Icon = MdPhoneIphone;
-  else if (device.type === "tablet") Icon = MdTablet;
+  if (session.deviceType === "mobile") Icon = MdPhoneIphone;
+  else if (session.deviceType === "tablet") Icon = MdTablet;
 
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-4 py-4">
@@ -60,7 +56,7 @@ export default function SessionItem({
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-body text-muted flex items-center gap-1 text-xs">
               <BsGlobe className="shrink-0" />
-              {browser.name}
+              {session.browserName}
             </span>
             <span className="font-body text-muted flex items-center gap-1 text-xs">
               <HiOutlineLocationMarker className="shrink-0" />

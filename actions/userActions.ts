@@ -11,7 +11,13 @@ import {
 } from "../lib/session";
 import User, { UserType } from "../models/userModel";
 import crypto from "crypto";
-import { AuthUser, SearchedUser, SigninData, SignupData } from "@/app/types";
+import {
+  AuthUser,
+  SearchedUser,
+  SigninData,
+  SignupData,
+  TDeviceInfo,
+} from "@/app/types";
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "../lib/cloudinary";
 import Session from "../models/sessionModel";
@@ -23,7 +29,7 @@ export const signupUser = catchAsyncAction<
   { message: string; user: AuthUser }
 >(async (data) => {
   await connectDB();
-  const { name, username, email, password, passwordConfirm } = data;
+  const { name, username, email, password, passwordConfirm, deviceInfo } = data;
 
   const newUser = await User.create({
     name: name,
@@ -34,13 +40,13 @@ export const signupUser = catchAsyncAction<
   });
 
   const headersList = await headers();
-  const userAgent = headersList.get("user-agent") ?? undefined;
   const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
+    headersList.get("x-real-ip") ??
+    undefined;
   const location = await getLocationFromIp(ip);
 
-  await createSession(newUser._id.toString(), userAgent, ip, location);
-
+  await createSession(newUser._id.toString(), ip, location, deviceInfo);
   return {
     message: "User created successfully",
     user: {
@@ -58,7 +64,7 @@ export const signinUser = catchAsyncAction<
   { message: string; user: AuthUser }
 >(async (data) => {
   await connectDB();
-  const { email, password } = data;
+  const { email, password, deviceInfo } = data;
 
   if (!email || !password)
     throw new AppError("You must provide email and password.", 400);
@@ -69,14 +75,14 @@ export const signinUser = catchAsyncAction<
     throw new AppError("Incorrect email or password.", 401);
 
   const headersList = await headers();
-  const userAgent = headersList.get("user-agent") ?? undefined;
   const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
+    headersList.get("x-real-ip") ??
+    undefined;
 
   const location = await getLocationFromIp(ip);
 
-  await createSession(user._id.toString(), userAgent, ip, location);
-
+  await createSession(user._id.toString(), ip, location, deviceInfo);
   return {
     message: "User signin successfully",
     user: {
@@ -90,9 +96,10 @@ export const signinUser = catchAsyncAction<
 });
 
 export const createGuestUser = catchAsyncAction<
-  null,
+  { deviceInfo?: TDeviceInfo },
   { message: string; user: AuthUser }
->(async () => {
+>(async (data) => {
+  const { deviceInfo } = data;
   await connectDB();
 
   const guestId = uuidv4().slice(0, 8);
@@ -107,13 +114,14 @@ export const createGuestUser = catchAsyncAction<
   });
 
   const headersList = await headers();
-  const userAgent = headersList.get("user-agent") ?? undefined;
   const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
+    headersList.get("x-real-ip") ??
+    undefined;
+  console.log("IP received:", ip);
   const location = await getLocationFromIp(ip);
 
-  await createSession(newGuestUser._id.toString(), userAgent, ip, location);
-
+  await createSession(newGuestUser._id.toString(), ip, location, deviceInfo);
   return {
     message: "Signed in as guest",
     user: {

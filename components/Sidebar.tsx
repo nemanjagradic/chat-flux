@@ -66,7 +66,12 @@ export default function Sidebar({ user }: { user: AuthUser }) {
     <div
       className={`${hasActiveRoom ? "xs:w-20 hidden w-14 md:flex" : "xs:w-20 flex w-14"} bg-sidebar border-accent/20 flex shrink-0 flex-col items-center gap-y-4 border-r py-4`}
     >
-      <h1 className="text-accent text-3xl font-extrabold">C</h1>
+      <Link
+        href="/conversations"
+        className="text-accent text-3xl font-extrabold"
+      >
+        C
+      </Link>
       {sidebarItems.map((item) => (
         <Link
           key={item.title}

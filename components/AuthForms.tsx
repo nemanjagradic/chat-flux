@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { socket } from "../lib/socket";
+import { UAParser } from "ua-parser-js";
 
 export default function AuthForms() {
   const router = useRouter();
@@ -27,7 +28,16 @@ export default function AuthForms() {
     setIsPending(true);
     setError(null);
 
-    const result = await createGuestUser(null);
+    const parser = new UAParser();
+    const parserResult = await parser.getResult().withClientHints();
+    const deviceInfo = {
+      browserName: parserResult.browser.name,
+      deviceModel: parserResult.device.model,
+      deviceType: parserResult.device.type,
+      osName: parserResult.os.name,
+    };
+
+    const result = await createGuestUser({ deviceInfo });
 
     if (!result) {
       setIsPending(false);
@@ -63,6 +73,15 @@ export default function AuthForms() {
     const password = formData.get("password")?.toString() ?? "";
     const passwordConfirm = formData.get("passwordConfirm")?.toString() ?? "";
 
+    const parser = new UAParser();
+    const parserResult = await parser.getResult().withClientHints();
+    const deviceInfo = {
+      browserName: parserResult.browser.name,
+      deviceModel: parserResult.device.model,
+      deviceType: parserResult.device.type,
+      osName: parserResult.os.name,
+    };
+
     let result;
 
     if (mode === "signup") {
@@ -72,9 +91,10 @@ export default function AuthForms() {
         email,
         password,
         passwordConfirm,
+        deviceInfo,
       });
     } else {
-      result = await signinUser({ email, password });
+      result = await signinUser({ email, password, deviceInfo });
     }
 
     if (!result) {

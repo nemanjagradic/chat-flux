@@ -15,9 +15,12 @@ const sessionSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  userAgent: String,
   ip: String,
   location: String,
+  browserName: String,
+  deviceType: String,
+  deviceModel: String,
+  osName: String,
   lastUsedAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
 });
