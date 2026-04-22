@@ -42,3 +42,18 @@ export function lastMessageAgo(date?: string) {
   if (hrs < 24) return `${hrs}h`;
   return `${Math.floor(hrs / 24)}d`;
 }
+
+export function getDateLabel(date: string): string {
+  const d = new Date(date);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}

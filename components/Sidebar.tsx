@@ -52,6 +52,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
       return;
     }
     toast.success(result.message);
+    dispatch(uiActions.closeLogoutModal());
     router.push("/auth");
   };
 

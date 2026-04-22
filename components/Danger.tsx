@@ -33,6 +33,7 @@ export default function Danger() {
       return;
     }
     toast.success(result.message);
+    dispatch(uiActions.closeLogoutModal());
     router.push("/auth");
   };
 
@@ -47,8 +48,10 @@ export default function Danger() {
       return;
     }
     toast.success(result.message);
+    dispatch(uiActions.closeLogoutModal());
     router.push("/auth");
   };
+
   return (
     <div className="flex-1">
       {isShowLogoutModal && (

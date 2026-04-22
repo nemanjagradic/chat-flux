@@ -18,6 +18,7 @@ import { useChatScrollAndMessages } from "../hooks/useChatScrollAndMessages";
 import {
   formatLastSeen,
   formatMessageTime,
+  getDateLabel,
   getInitials,
 } from "../lib/formatters";
 import { IoArrowBack } from "react-icons/io5";
@@ -195,21 +196,40 @@ export default function Chat({
           </div>
         )}
 
-        {messages.map((msg: TMessage) => (
-          <Message
-            key={msg._id}
-            id={msg._id}
-            text={msg.content}
-            time={formatMessageTime(msg.createdAt)}
-            status={msg.status}
-            onInfoClick={() => setSelectedMessage(msg)}
-            deliveredAt={msg.deliveredAt}
-            readAt={msg.readAt}
-            isOwn={msg.senderId === currentUser._id}
-            isStarred={msg.isStarred}
-            onStarClick={() => handleStarredMessage(msg._id, msg.isStarred)}
-          />
-        ))}
+        {messages.map((msg: TMessage, index: number) => {
+          const currentDate = new Date(msg.createdAt).toDateString();
+          const prevDate =
+            index > 0
+              ? new Date(messages[index - 1].createdAt).toDateString()
+              : null;
+          const showDateSeparator = currentDate !== prevDate;
+          return (
+            <div key={msg._id}>
+              {showDateSeparator && (
+                <div className="flex items-center gap-3 py-2">
+                  <div className="border-accent/10 flex-1 border-t" />
+                  <span className="text-muted text-xs">
+                    {getDateLabel(msg.createdAt)}
+                  </span>
+                  <div className="border-accent/10 flex-1 border-t" />
+                </div>
+              )}
+              <Message
+                key={msg._id}
+                id={msg._id}
+                text={msg.content}
+                time={formatMessageTime(msg.createdAt)}
+                status={msg.status}
+                onInfoClick={() => setSelectedMessage(msg)}
+                deliveredAt={msg.deliveredAt}
+                readAt={msg.readAt}
+                isOwn={msg.senderId === currentUser._id}
+                isStarred={msg.isStarred}
+                onStarClick={() => handleStarredMessage(msg._id, msg.isStarred)}
+              />
+            </div>
+          );
+        })}
         <div ref={bottomRef} />
       </div>
 

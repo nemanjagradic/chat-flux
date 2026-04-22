@@ -24,7 +24,7 @@ export default function NewConversation({ user }: { user: AuthUser }) {
       return;
     }
     setIsPending(true);
-    const result = await searchUsers({ query, currentUserId: user._id });
+    const result = await searchUsers({ query: value, currentUserId: user._id });
     setIsPending(false);
     if (result && "users" in result) setResults(result.users);
   }

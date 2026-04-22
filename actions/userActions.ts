@@ -39,6 +39,14 @@ export const signupUser = catchAsyncAction<
     passwordConfirm: passwordConfirm,
   });
 
+  const profileUrl = `${process.env.NEXT_PUBLIC_APP_URL}/settings/profile`;
+
+  try {
+    await new Email(newUser, profileUrl).sendWelcome();
+  } catch {
+    console.error("Welcome email failed to send");
+  }
+
   const headersList = await headers();
   const ip =
     headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;

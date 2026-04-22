@@ -13,7 +13,7 @@ import { TMessage, TRoom, RoomMember, UserStatus } from "@/app/types";
 import { toast } from "sonner";
 import { toggleMessageStar } from "../actions/messagesActions";
 import { useChatScrollAndMessages } from "../hooks/useChatScrollAndMessages";
-import { formatMessageTime } from "../lib/formatters";
+import { formatMessageTime, getDateLabel } from "../lib/formatters";
 import { useRouter } from "next/navigation";
 
 export default function GroupChat({
@@ -197,30 +197,51 @@ export default function GroupChat({
           </div>
         )}
 
-        {messages.map((msg: TMessage) => (
-          <div key={msg._id} className="flex flex-col">
-            {msg.senderId !== currentUser._id && (
-              <span className="text-accent mb-1 ml-1 text-[10px] font-semibold">
-                {getSenderName(msg.senderId)}
-              </span>
-            )}
-            <Message
-              key={msg._id}
-              id={msg._id}
-              text={msg.content}
-              time={formatMessageTime(msg.createdAt)}
-              isOwn={msg.senderId === currentUser._id}
-              onInfoClick={() => setSelectedMessage(msg)}
-              isGroup={true}
-              deliveredTo={msg.deliveredTo ?? []}
-              readBy={msg.readBy ?? []}
-              totalMembers={room.members.length}
-              members={room.members}
-              isStarred={msg.isStarred}
-              onStarClick={() => handleStarredMessage(msg._id, msg.isStarred)}
-            />
-          </div>
-        ))}
+        {messages.map((msg: TMessage, index: number) => {
+          const currentDate = new Date(msg.createdAt).toDateString();
+          const prevDate =
+            index > 0
+              ? new Date(messages[index - 1].createdAt).toDateString()
+              : null;
+          const showDateSeparator = currentDate !== prevDate;
+          return (
+            <div key={msg._id}>
+              {showDateSeparator && (
+                <div className="flex items-center gap-3 py-2">
+                  <div className="border-accent/10 flex-1 border-t" />
+                  <span className="text-muted text-xs">
+                    {getDateLabel(msg.createdAt)}
+                  </span>
+                  <div className="border-accent/10 flex-1 border-t" />
+                </div>
+              )}
+              <div className="flex flex-col">
+                {msg.senderId !== currentUser._id && (
+                  <span className="text-accent mb-1 ml-1 text-[10px] font-semibold">
+                    {getSenderName(msg.senderId)}
+                  </span>
+                )}
+                <Message
+                  key={msg._id}
+                  id={msg._id}
+                  text={msg.content}
+                  time={formatMessageTime(msg.createdAt)}
+                  isOwn={msg.senderId === currentUser._id}
+                  onInfoClick={() => setSelectedMessage(msg)}
+                  isGroup={true}
+                  deliveredTo={msg.deliveredTo ?? []}
+                  readBy={msg.readBy ?? []}
+                  totalMembers={room.members.length}
+                  members={room.members}
+                  isStarred={msg.isStarred}
+                  onStarClick={() =>
+                    handleStarredMessage(msg._id, msg.isStarred)
+                  }
+                />
+              </div>
+            </div>
+          );
+        })}
         <div ref={bottomRef} />
       </div>
 
