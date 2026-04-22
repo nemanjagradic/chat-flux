@@ -45,25 +45,38 @@ export default function AppLayout({
     });
 
     socket.on("newMessageNotification", ({ message }) => {
+      console.log("Event received");
       if (message.senderId !== user._id && !user.doNotDisturb) {
         const isGroupMessage = !message.recipientId;
         if (isGroupMessage && !user.groupAlerts) return;
 
         const isTabVisible = document.visibilityState === "visible";
+        console.log("Tab visible:", isTabVisible);
 
         if (!isTabVisible) {
+          console.log(
+            "desktopNotifications:",
+            user.desktopNotifications,
+            "permission:",
+            Notification.permission,
+          );
           if (
             user.desktopNotifications &&
             Notification.permission === "granted"
           ) {
+            console.log("Creating notification...");
+            const options = {
+              body: message.content,
+              icon: window.location.origin + "/favicon.ico",
+              tag: message.customRoomId || "general",
+              renotify: true,
+            } as NotificationOptions;
+
             const notification = new Notification(
               isGroupMessage
                 ? `${message.senderName} in ${message.roomName}`
                 : (message.senderName ?? "New message"),
-              {
-                body: message.content,
-                icon: "/favicon.ico",
-              },
+              options,
             );
 
             notification.onclick = () => {
