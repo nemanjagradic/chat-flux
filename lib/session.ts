@@ -104,16 +104,27 @@ export const getUserSessions = catchAsyncAction(async (userId: string) => {
 });
 
 export async function getLocationFromIp(ip?: string): Promise<string> {
-  console.log("Getting location for IP:", ip);
   if (!ip || ip === "::1" || ip === "127.0.0.1") return "Localhost";
+
   try {
-    const res = await fetch(`https://ipapi.co/${ip}/json/`);
-    const data = await res.json();
-    if (data.city && data.country_code) {
-      return `${data.city}, ${data.country_code}`;
+    const res = await fetch(
+      `https://ipinfo.io/${ip}?token=${process.env.IPINFO_API_TOKEN}`,
+    );
+
+    if (!res.ok) {
+      console.error(`Error status: ${res.status}`);
+      return "Unknown";
     }
+
+    const data = await res.json();
+
+    if (data.city && data.country) {
+      return `${data.city}, ${data.country}`;
+    }
+
     return "Unknown";
-  } catch {
+  } catch (err) {
+    console.error("IP Lookup error:", err);
     return "Unknown";
   }
 }

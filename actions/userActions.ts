@@ -41,9 +41,7 @@ export const signupUser = catchAsyncAction<
 
   const headersList = await headers();
   const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
-    headersList.get("x-real-ip") ??
-    undefined;
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
   const location = await getLocationFromIp(ip);
 
   await createSession(newUser._id.toString(), ip, location, deviceInfo);
@@ -76,9 +74,7 @@ export const signinUser = catchAsyncAction<
 
   const headersList = await headers();
   const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
-    headersList.get("x-real-ip") ??
-    undefined;
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
 
   const location = await getLocationFromIp(ip);
 
@@ -115,10 +111,7 @@ export const createGuestUser = catchAsyncAction<
 
   const headersList = await headers();
   const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0].trim() ??
-    headersList.get("x-real-ip") ??
-    undefined;
-  console.log("IP received:", ip);
+    headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? undefined;
   const location = await getLocationFromIp(ip);
 
   await createSession(newGuestUser._id.toString(), ip, location, deviceInfo);
