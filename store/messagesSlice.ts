@@ -120,6 +120,7 @@ const messagesSlice = createSlice({
       action: PayloadAction<{
         roomId: string;
         messageId: string;
+        userId: string;
         isStarred: boolean;
       }>,
     ) {
@@ -128,7 +129,18 @@ const messagesSlice = createSlice({
         const message = messages.find(
           (m) => m._id === action.payload.messageId,
         );
-        if (message) message.isStarred = action.payload.isStarred;
+        if (message) {
+          if (action.payload.isStarred) {
+            message.starredBy = message.starredBy.filter(
+              (s) => s.userId !== action.payload.userId,
+            );
+          } else {
+            message.starredBy.push({
+              userId: action.payload.userId,
+              starredAt: new Date().toISOString(),
+            });
+          }
+        }
       }
     },
   },

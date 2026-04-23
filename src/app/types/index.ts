@@ -98,7 +98,7 @@ export type TMessage = {
   senderId: string;
   recipientId?: string;
   content: string;
-  isStarred: boolean;
+  starredBy: { userId: string; starredAt: string }[];
   status?: string;
   deliveredAt?: Date;
   readAt?: Date;

@@ -3,7 +3,6 @@
 import { catchAsyncAction } from "../lib/catchAsync";
 import connectDB from "../lib/mongodb";
 import Message from "../models/messageModel";
-import Room from "../models/roomModel";
 
 export const getMessagesByRoom = catchAsyncAction(async (roomId: string) => {
   await connectDB();
@@ -17,26 +16,23 @@ export const toggleMessageStar = catchAsyncAction(
   async ({
     messageId,
     isStarred,
+    userId,
   }: {
     messageId: string;
     isStarred: boolean;
+    userId: string;
   }) => {
     await connectDB();
 
-    if (!isStarred) {
-      await Message.findByIdAndUpdate(messageId, {
-        isStarred: true,
-        starredAt: new Date(),
-      });
-    } else {
-      await Message.findByIdAndUpdate(messageId, {
-        isStarred: false,
-        starredAt: null,
-      });
-    }
+    await Message.findByIdAndUpdate(
+      messageId,
+      isStarred
+        ? { $pull: { starredBy: { userId } } }
+        : { $push: { starredBy: { userId, starredAt: new Date() } } },
+    );
 
     return {
-      message: `Message is marked as ${!isStarred ? "starred" : "unstarred"}`,
+      message: `Message ${!isStarred ? "starred" : "unstarred"}`,
     };
   },
 );
@@ -44,20 +40,10 @@ export const toggleMessageStar = catchAsyncAction(
 export const getStarredMessages = catchAsyncAction(async (userId: string) => {
   await connectDB();
 
-  const userRooms = await Room.find({ members: userId });
-  const roomIds = userRooms.map((r) => r._id);
-
-  const messages = await Message.find({
-    isStarred: true,
-    $or: [
-      { senderId: userId },
-      { recipientId: userId },
-      { roomId: { $in: roomIds } },
-    ],
-  })
+  const messages = await Message.find({ "starredBy.userId": userId })
     .populate("senderId", "name photo")
     .populate("roomId", "name roomId")
-    .sort({ starredAt: -1 });
+    .sort({ "starredBy.starredAt": -1 });
 
   return { messages: JSON.parse(JSON.stringify(messages)) };
 });

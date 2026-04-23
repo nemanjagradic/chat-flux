@@ -41,8 +41,12 @@ const messageSchema = new mongoose.Schema({
     },
   ],
   isStarred: { type: Boolean, default: false },
-  starredAt: Date,
-  starredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  starredBy: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      starredAt: Date,
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
   editedAt: Date,
 });

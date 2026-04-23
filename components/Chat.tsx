@@ -58,7 +58,11 @@ export default function Chat({
     messageId: string,
     isStarred: boolean,
   ) => {
-    const result = await toggleMessageStar({ messageId, isStarred });
+    const result = await toggleMessageStar({
+      messageId,
+      isStarred,
+      userId: currentUser._id,
+    });
     if (!result || "error" in result) {
       toast.error("error" in result ? result.error : "Something went wrong");
       return;
@@ -67,7 +71,8 @@ export default function Chat({
       messagesActions.updateMessageStar({
         roomId,
         messageId,
-        isStarred: !isStarred,
+        userId: currentUser._id,
+        isStarred,
       }),
     );
     toast(result.message, {
@@ -197,6 +202,8 @@ export default function Chat({
         )}
 
         {messages.map((msg: TMessage, index: number) => {
+          const isStarred =
+            msg.starredBy?.some((s) => s.userId === currentUser._id) ?? false;
           const currentDate = new Date(msg.createdAt).toDateString();
           const prevDate =
             index > 0
@@ -224,8 +231,8 @@ export default function Chat({
                 deliveredAt={msg.deliveredAt}
                 readAt={msg.readAt}
                 isOwn={msg.senderId === currentUser._id}
-                isStarred={msg.isStarred}
-                onStarClick={() => handleStarredMessage(msg._id, msg.isStarred)}
+                isStarred={isStarred}
+                onStarClick={() => handleStarredMessage(msg._id, isStarred)}
               />
             </div>
           );
