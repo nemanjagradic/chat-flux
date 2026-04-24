@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChatFlux
 
-## Getting Started
+A real-time full-stack chat application built with Next.js and Socket.io. ChatFlux supports direct and group messaging, live delivery and read receipts, desktop notifications, session management, and more.
 
-First, run the development server:
+**Live Demo:** [chat-flux.up.railway.app](https://chat-flux.up.railway.app)
+
+> To explore the app without signing up, click **Continue as Guest** on the login page. Guest accounts are automatically deleted on logout.
+
+---
+
+## Features
+
+### Authentication & Users
+
+- Sign up / Sign in with email and password
+- Guest login — explore the full app without creating an account
+- Forgot / Reset password via email
+- Welcome email on registration
+- Profile management — update name, username, bio, and profile photo
+- Account settings — update email and password
+
+### Messaging
+
+- Real-time direct messaging with WebSockets
+- Group chat creation with custom name, icon, and members
+- Message delivery and read receipts (single and double checkmarks)
+- Messages grouped by date (Today, Yesterday, older dates)
+- Message sound and desktop push notifications (configurable)
+
+### Starred Messages
+
+- Dedicated starred messages page — click any starred message to jump directly to it in the original conversation, highlighted for easy identification
+- Per-user starring — each user has their own starred messages independently
+
+### Conversations
+
+- Room list with last message preview and timestamp
+- Unread message count badges per room
+- Search conversations by name or username
+- Filter conversations by type (All, Direct, Group)
+
+### Sessions
+
+- View all active sessions with device info, browser, and location
+- Revoke individual sessions or all other sessions at once
+- Session location resolved via IP geolocation
+- Device detection via UA Parser
+
+### Notifications
+
+- Desktop push notifications when the browser tab is in the background
+- Message arrival sound when the tab is active
+- Separate notification sound for background alerts
+- Group message alerts — toggle notifications for group chats independently
+- Do Not Disturb mode — silences all sounds and notifications at once
+
+---
+
+## Tech Stack
+
+- **Frontend:** Next.js, TypeScript, Tailwind CSS, Redux Toolkit
+- **Backend:** Node.js custom server, Socket.io, MongoDB, Mongoose
+- **Storage:** Cloudinary (profile photos)
+- **Email:** Resend
+- **Deployment:** Railway
+- **Libraries:** UA Parser (device detection), ipinfo.io (IP geolocation)
+
+---
+
+## Installation & Usage
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/nemanjagradic/chat-flux.git
+cd chat-flux
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+Create a `.env` file in the root with the following:
+
+```env
+PORT=3000
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+ENV=development
+
+DATABASE=mongodb+srv://<username>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
+DATABASE_PASSWORD=<your_database_password>
+
+EMAIL_FROM=ChatFlux <noreply@yourdomain.com>
+RESEND_API_KEY=<your_resend_api_key>
+
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=<your_cloud_name>
+CLOUDINARY_API_KEY=<your_api_key>
+CLOUDINARY_API_SECRET=<your_api_secret>
+
+IPINFO_API_TOKEN=<your_ipinfo_token>
+```
+
+### 4. Run in development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. Build and run in production
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+ChatFlux is deployed on [Railway](https://railway.app). The custom Node.js server compiles TypeScript via a separate `tsconfig.server.json` before serving the Next.js app alongside Socket.io.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
