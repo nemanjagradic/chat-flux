@@ -13,7 +13,7 @@ import { roomsActions } from "../store/roomSlice";
 import { UserStatus } from "@/app/types";
 import { onlineUsersActions } from "../store/onlineUsersSlice";
 import { playMessageSound } from "../lib/sounds";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function AppLayout({
   children,
@@ -26,6 +26,7 @@ export default function AppLayout({
   const isGroupModalShow = useSelector(
     (state: RootState) => state.ui.isGroupModalShow,
   );
+  const { roomId: activeRoomId } = useParams();
 
   const dispatch = useDispatch();
 
@@ -43,28 +44,29 @@ export default function AppLayout({
     socket.on("userOffline", ({ userId, lastSeen }) => {
       dispatch(onlineUsersActions.removeOnlineUser({ userId, lastSeen }));
     });
-
+    socket.on("unreadCounts", ({ unreadCounts }) => {
+      dispatch(roomsActions.setUnreadCounts(unreadCounts));
+    });
+    socket.on("groupCreated", (room) => {
+      dispatch(roomsActions.addRoom(room));
+    });
     socket.on("newMessageNotification", ({ message }) => {
-      console.log("Event received");
+      dispatch(
+        roomsActions.incrementUnread({
+          roomId: message.customRoomId,
+        }),
+      );
       if (message.senderId !== user._id && !user.doNotDisturb) {
         const isGroupMessage = !message.recipientId;
         if (isGroupMessage && !user.groupAlerts) return;
 
         const isTabVisible = document.visibilityState === "visible";
-        console.log("Tab visible:", isTabVisible);
 
         if (!isTabVisible) {
-          console.log(
-            "desktopNotifications:",
-            user.desktopNotifications,
-            "permission:",
-            Notification.permission,
-          );
           if (
             user.desktopNotifications &&
             Notification.permission === "granted"
           ) {
-            console.log("Creating notification...");
             const options = {
               body: message.content,
               icon: window.location.origin + "/favicon.ico",
@@ -170,7 +172,7 @@ export default function AppLayout({
 
     return () => {
       socket.off("connect");
-      socket.off("newMessage");
+      socket.off("groupCreated");
       socket.off("newMessageNotification");
       socket.off("messagesDelivered");
       socket.off("groupMessagesDelivered");
@@ -181,6 +183,7 @@ export default function AppLayout({
       socket.off("onlineUsers");
     };
   }, [
+    activeRoomId,
     dispatch,
     router,
     user._id,

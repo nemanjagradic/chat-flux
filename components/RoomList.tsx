@@ -22,6 +22,9 @@ export default function RoomList({
   const onlineUsers = useSelector(
     (state: RootState) => state.onlineUsers.onlineUsers,
   );
+  const unreadCounts = useSelector(
+    (state: RootState) => state.rooms.unreadCounts,
+  );
 
   const dispatch = useDispatch();
 
@@ -111,6 +114,13 @@ export default function RoomList({
               <span className="text-muted text-[10px]">
                 {lastMessageAgo(room.lastMessageAt)}
               </span>
+              {unreadCounts[room.roomId] > 0 && !isActive && (
+                <span className="bg-accent flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white">
+                  {unreadCounts[room.roomId] > 99
+                    ? "99+"
+                    : unreadCounts[room.roomId]}
+                </span>
+              )}
             </div>
           </div>
         );

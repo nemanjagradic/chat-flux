@@ -78,7 +78,7 @@ const userSchema = new mongoose.Schema<UserType>({
   lastSeen: Date,
   messageSounds: { type: Boolean, default: true },
   notificationSound: { type: Boolean, default: true },
-  desktopNotifications: { type: Boolean, default: true },
+  desktopNotifications: { type: Boolean, default: false },
   groupAlerts: { type: Boolean, default: false },
   doNotDisturb: { type: Boolean, default: false },
   isGuest: { type: Boolean, default: false },

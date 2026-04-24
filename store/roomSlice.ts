@@ -5,12 +5,14 @@ type RoomsState = {
   rooms: TRoom[];
   type: string;
   searchName: string;
+  unreadCounts: Record<string, number>;
 };
 
 const initialState: RoomsState = {
   rooms: [],
   type: "All",
   searchName: "",
+  unreadCounts: { roomId: 0 },
 };
 
 const roomsSlice = createSlice({
@@ -55,6 +57,17 @@ const roomsSlice = createSlice({
     },
     setSearchName: (state, action) => {
       state.searchName = action.payload;
+    },
+    setUnreadCounts(state, action: PayloadAction<Record<string, number>>) {
+      state.unreadCounts = action.payload;
+    },
+    incrementUnread(state, action: PayloadAction<{ roomId: string }>) {
+      const { roomId } = action.payload;
+      state.unreadCounts[roomId] = (state.unreadCounts[roomId] ?? 0) + 1;
+    },
+    resetUnread(state, action: PayloadAction<{ roomId: string }>) {
+      const { roomId } = action.payload;
+      state.unreadCounts[roomId] = 0;
     },
   },
 });

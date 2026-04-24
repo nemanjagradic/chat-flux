@@ -10,7 +10,6 @@ import Button from "./UI/Button";
 import { AuthUser, SearchedUser } from "@/app/types";
 import { searchUsers } from "../actions/userActions";
 import { socket } from "../lib/socket";
-import { roomsActions } from "../store/roomSlice";
 import { getInitials } from "../lib/formatters";
 
 const GROUP_ICONS = ["🎨", "🚀", "⚡", "🔥", "💡", "🎮", "🎵", "💼"];
@@ -54,15 +53,13 @@ export default function CreateGroupModal({ user }: { user: AuthUser }) {
     setIsPending(true);
 
     socket.off("groupError");
-    socket.off("groupCreated");
 
     socket.once("groupError", ({ errors }: { errors: string[] }) => {
       setErrors(errors);
       setIsPending(false);
     });
 
-    socket.once("groupCreated", (room) => {
-      dispatch(roomsActions.addRoom(room));
+    socket.once("groupCreated", () => {
       setIsPending(false);
       closeGroupModal();
     });

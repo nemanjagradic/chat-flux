@@ -8,6 +8,7 @@ import {
   mapGroupMessages,
   filterFullyProcessed,
 } from "./socketUtils";
+import mongoose from "mongoose";
 
 export async function onUserConnect(
   userId: string,
@@ -20,6 +21,7 @@ export async function onUserConnect(
   await syncGroupUndelivered(userId, io);
   await syncOwnGroupDelivered(userId, socket);
   await syncOwnGroupRead(userId, socket);
+  await syncUnreadCounts(userId, socket);
 }
 
 async function syncDirectUndelivered(userId: string, io: Server) {
@@ -133,4 +135,39 @@ async function syncOwnGroupRead(userId: string, socket: Socket) {
   const messages = mapGroupMessages(fullyReadOwn, "read");
 
   socket.emit("readReceiptGroup", { messages });
+}
+
+async function syncUnreadCounts(userId: string, socket: Socket) {
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+
+  const unreadDirect = await Message.aggregate([
+    {
+      $match: {
+        recipientId: userObjectId,
+        status: { $ne: "read" },
+      },
+    },
+    { $group: { _id: "$customRoomId", count: { $sum: 1 } } },
+  ]);
+
+  const groupRooms = await Room.find({ members: userId, type: "group" });
+  const groupRoomIds = groupRooms.map((r) => r._id);
+
+  const unreadGroup = await Message.aggregate([
+    {
+      $match: {
+        roomId: { $in: groupRoomIds },
+        senderId: { $ne: userObjectId },
+        "readBy.userId": { $ne: userObjectId },
+      },
+    },
+    { $group: { _id: "$customRoomId", count: { $sum: 1 } } },
+  ]);
+
+  const unreadCounts: Record<string, number> = {};
+  [...unreadDirect, ...unreadGroup].forEach(({ _id, count }) => {
+    unreadCounts[_id] = (unreadCounts[_id] ?? 0) + count;
+  });
+
+  socket.emit("unreadCounts", { unreadCounts });
 }

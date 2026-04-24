@@ -1,7 +1,7 @@
 "use client";
 
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { RootState } from "../store";
 import { roomsActions } from "../store/roomSlice";
 import { useEffect } from "react";
@@ -18,7 +18,6 @@ export default function GroupList({ initialRooms }: { initialRooms: TRoom[] }) {
     dispatch(roomsActions.setRooms(initialRooms));
   }, [initialRooms, dispatch]);
 
-  const { roomId: activeRoomId } = useParams();
   const router = useRouter();
 
   if (groupRooms.length === 0) {
@@ -32,20 +31,14 @@ export default function GroupList({ initialRooms }: { initialRooms: TRoom[] }) {
   return (
     <div className="flex flex-col">
       {groupRooms.map((room: TRoom) => {
-        const isActive = room.roomId === activeRoomId;
-
         return (
           <div
             key={room._id}
             onClick={() => router.push(`/conversations/${room.roomId}`)}
-            className={`relative flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors ${
-              isActive ? "bg-accent/10" : "hover:bg-accent/5"
-            }`}
+            className={
+              "relative flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors"
+            }
           >
-            {isActive && (
-              <div className="bg-accent absolute top-2 bottom-2 left-0 w-0.5 rounded-r" />
-            )}
-
             <div className="bg-accent/20 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
               <span className="text-base">{room.icon ?? "👥"}</span>
             </div>

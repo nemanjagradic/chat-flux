@@ -98,6 +98,7 @@ export default function Chat({
 
   useEffect(() => {
     socket.emit("joinRoom", { roomId });
+    dispatch(roomsActions.resetUnread({ roomId }));
 
     socket.on("roomCreated", (room) => {
       dispatch(roomsActions.addRoom(room));
