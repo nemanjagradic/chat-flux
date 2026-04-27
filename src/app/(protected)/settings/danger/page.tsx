@@ -5,5 +5,5 @@ import Danger from "../../../../../components/Danger";
 export default async function DangerPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth");
-  return <Danger />;
+  return <Danger user={user} />;
 }

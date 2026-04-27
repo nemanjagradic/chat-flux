@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
   IoChatbubbleOutline,
   IoPeopleOutline,
@@ -9,52 +9,22 @@ import {
   IoSettingsOutline,
 } from "react-icons/io5";
 import { MdOutlineLogout } from "react-icons/md";
-import { deleteGuestData, logout } from "../lib/session";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { uiActions } from "../store/uiSlice";
 import ConfirmModal from "./ConfirmModal";
 import { AuthUser } from "@/app/types";
-import { toast } from "sonner";
+import { useLogout } from "../hooks/useLogout";
 
 export default function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
   const { roomId } = useParams();
   const hasActiveRoom = !!roomId;
-  const router = useRouter();
   const isShowLogoutModal = useSelector(
     (state: RootState) => state.ui.isLogoutModalShow,
   );
   const dispatch = useDispatch();
-
-  const handleLogout = async () => {
-    if (user.isGuest) {
-      const result = await deleteGuestData();
-      if (!result) {
-        toast.error("Something went wrong. Please try again.");
-        return;
-      }
-      if ("error" in result) {
-        toast.error(result.error);
-        return;
-      }
-      router.push("/auth");
-      return;
-    }
-
-    const result = await logout();
-    if (!result) {
-      toast.error("Something went wrong. Please try again.");
-      return;
-    }
-    if ("error" in result) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success(result.message);
-    dispatch(uiActions.closeLogoutModal());
-    router.push("/auth");
-  };
+  const { handleLogout } = useLogout(user);
 
   const sidebarItems = [
     { title: "conversations", icon: IoChatbubbleOutline },

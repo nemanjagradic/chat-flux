@@ -23,6 +23,7 @@ A real-time full-stack chat application built with Next.js and Socket.io. ChatFl
 
 - Real-time direct messaging with WebSockets
 - Group chat creation with custom name, icon, and members
+- Message delivery and read receipts with exact delivered and read timestamps
 - Message delivery and read receipts (single and double checkmarks)
 - Messages grouped by date (Today, Yesterday, older dates)
 - Message sound and desktop push notifications (configurable)

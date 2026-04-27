@@ -5,15 +5,17 @@ import { BsTrash } from "react-icons/bs";
 import Header from "./UI/Header";
 import SettingItem from "./UI/SettingItem";
 import { useRouter } from "next/navigation";
-import { deleteAccount, logout } from "../lib/session";
+import { deleteAccount } from "../lib/session";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { uiActions } from "../store/uiSlice";
+import { AuthUser } from "@/app/types";
+import { useLogout } from "../hooks/useLogout";
 
-export default function Danger() {
+export default function Danger({ user }: { user: AuthUser }) {
   const router = useRouter();
   const isShowLogoutModal = useSelector(
     (state: RootState) => state.ui.isLogoutModalShow,
@@ -21,21 +23,7 @@ export default function Danger() {
   const dispatch = useDispatch();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const handleLogout = async () => {
-    const result = await logout();
-    if (!result) {
-      toast.error("Something went wrong. Please try again.");
-      return;
-    }
-    if ("error" in result) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success(result.message);
-    dispatch(uiActions.closeLogoutModal());
-    router.push("/auth");
-  };
+  const { handleLogout } = useLogout(user);
 
   const handleDelete = async () => {
     const result = await deleteAccount();
